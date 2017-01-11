@@ -64,15 +64,15 @@ class call_db_store_class(object):
         cur.close()
         conn.close()
 
+#这是代表往223上运行
 dw_main = call_db_store_class(223)
+
+#dw --》edwpdc 3部曲
 dw_main.dw_main_func("dw")
 dw_main.dw_part_1_func()
 dw_main.dw_main_func("edwpdc")
 
-dw_main.for_dw_main_func("dw", 20170107, 20170108)
 
+#这个支持dw的批量跑批
+# dw_main.for_dw_main_func("dw", 20170107, 20170108)
 
-
-# dw.pack_dw_all.proc_main,[i_data_date,i_type1,v_return_code,v_return_message]
-# dw.pack_dw_update_01.proc_dw_update,[i_data_date ,v_return_code,v_return_message]
-# dw.pack_dw_all.proc_main[i_data_date,i_type2,v_return_code,v_return_message]
