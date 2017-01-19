@@ -3,9 +3,22 @@ import multiprocessing
 
 '''自动跑批类'''
 class auto_java_DB_class(object):
-    def __init__(self, name, sql):
+    def __init__(self, name, rename, sql):
         self.name = name
+        self.rename = rename
         self.sql = sql
+
+
+    def check_custom_upload_data_func(self):
+        # mv_cfdata_dir = "mv_cfdata"
+        mv_cfdata_dir = "/data/mv_cfdata"
+        mv_cfdata_dir = "%s/%s/%s" % (mv_cfdata_dir, self.rename, time_stamp)
+
+        print(mv_cfdata_dir)
+        if len(os.listdir(mv_cfdata_dir)) == 0:
+            print("The [%s] no data!, will eixt!" % (mv_cfdata_dir))
+            os.exit()
+
 
     '''检查客户（孙振）注意的那张表，正常跑批会更新'''
     def check_DB_update_time_table_flag_func(self, ):
@@ -15,29 +28,20 @@ class auto_java_DB_class(object):
         #这里做一个时间差，超过1天(不包含一天)，就代表不能数据跑批不正常
         time_cha = abs(int(time_stamp) - int(update_table_time))
         if time_cha > 1:
-            print("[%s] DB auto java was wrong!!! over 2 day data not auto java,will exit!!!")
-            exit()
+            print("[%s] DB auto java was wrong!!! over 2 day data not auto java, will exit!!!")
+            os.exit()
         if time_stamp <= update_table_time:
-            print("[%s] DB update flag_table already!,don't run,will exit!" % (self.name))
-            exit()
-            return 0
+            print("[%s] DB update flag_table already!, will exit!" % (self.name))
+            os.exit()
         else:
             return 1
 
     #检查跑批进程是否正在运行
     def check_auto_java_DB_isRunning_func(self):
-        time_flag = self.check_DB_update_time_table_flag_func()
-        if not time_flag:
-            exit()
-
         #调用ps 命令查询相关进程
         cmd = "ps aux|grep java|egrep -v 'u01|sh'|grep"
-
         cmd = "%s '%s'|wc -l" % (cmd, self.name)
 
-        # print(cmd)
-        #临时
-        cmd = "netstat -n"
         try:
             a = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             for l1 in a.stdout.readlines():
@@ -45,88 +49,70 @@ class auto_java_DB_class(object):
                 l1 = l1.decode()
                 if l1 == '0':
                     return 1
-                if l1 == '1':
-                    return 0
+                else:
+                    print("[%s] auto java is running alreday!\n" % (self.name))
+                    os.exit()
         except Exception:
-            print("can't run auto java,pls check the code")
-            return 0
+            os.exit()
 
     #开始进行跑批工作
     def run_auto_java_DB_func(self):
-        auto_java_flag = 1
-        time_flag = self.check_DB_update_time_table_flag_func()
-        isrunning_flag = self.check_auto_java_DB_isRunning_func()
+        #这个标识用来是否更新标识表，和插入跑批数据
+        auto_java_flag = False
 
-        ##临时
-        isrunning_flag = 1
-        if isrunning_flag and time_flag:
-            print("[%s] DB not java! will run auto java... " %(self.name))
+        print("[%s] DB not auto java! will run ... " %(self.name))
+        sys.stdout.flush()
 
-            ##取跑批开始时间
-            start_date_time_stamp = (datetime.datetime.now() + datetime.timedelta(-0))
-            ## 跑批时间的秒格式
-            start_date_time_stamp_second = start_date_time_stamp
-            # print(start_date_time_stamp_second)
-            start_date_time_stamp = start_date_time_stamp.strftime("%Y/%m/%d %H:%M:%S")
-            # print("[%s] auto java start time：%s" % (self.name, start_date_time_stamp))
+        ##取跑批开始时间
+        start_date_time_stamp = (datetime.datetime.now() + datetime.timedelta(-0))
+        ## 跑批时间的秒格式
+        start_date_time_stamp_second = start_date_time_stamp
+        start_date_time_stamp = start_date_time_stamp.strftime("%Y/%m/%d %H:%M:%S")
 
-            #正式调用java程序跑批
-            arg1 = "java -jar -Xms512m -Xmx1024m"
-            arg2 = "/server/scripts/auto_java_DB_everyday/auto_java_properties/freight20161219.jar"
-            arg3 = "/server/scripts/auto_java_DB_everyday/auto_java_properties/"
-            arg3 = "%s%s.properties" % (arg3, self.name)
-            arg4 = time_stamp
 
-            cmd = "%s %s %s %s" % (arg1, arg2, arg3, arg4)
+        #正式调用java程序跑批
+        arg1 = "java -jar -Xms512m -Xmx1024m"
+        arg2 = "/server/scripts/auto_java_DB_everyday/auto_java_properties/freight20161219.jar"
+        arg3 = "/server/scripts/auto_java_DB_everyday/auto_java_properties/"
+        arg3 = "%s%s.properties" % (arg3, self.name)
+        arg4 = time_stamp
 
-            print(cmd)
+        cmd = "%s %s %s %s" % (arg1, arg2, arg3, arg4)
 
-            #临时
-            cmd = "netstat -n"
-            # print(cmd)
-	        #临时
-            time.sleep(3)
-            try:
-                a = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-                for l1 in a.stdout.readlines():
-                    l1 = l1.strip()
-                    l1 = l1.decode()
-                    print(l1)
-                    #time.sleep(2)
-                    sys.stdout.flush()
+        print(cmd)
+        sys.stdout.flush()
 
-            except Exception:
-                ##临时 win下也能代表成功调度
-                print("can't run auto java,pls check the code")
-                print("OK了，你是win的话")
-                auto_java_flag = 0
+        try:
+            auto_java_flag = True
+            a = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            for l1 in a.stdout.readlines():
+                l1 = l1.strip()
+                l1 = l1.decode()
 
-	    #计算出跑批完成时间
-            end_date_time_stamp = (datetime.datetime.now() + datetime.timedelta(-0))
-            end_date_time_stamp_second = end_date_time_stamp
-            end_date_time_stamp = end_date_time_stamp.strftime("%Y/%m/%d %H:%M:%S")
-            # print("[%s] auto java end time：%s" % (self.name, end_date_time_stamp))
+        except Exception:
+            print("can't run auto java,pls check the code")
 
-            #计算出跑批时间
-            cost_time = end_date_time_stamp_second - start_date_time_stamp_second
-            cost_time = (cost_time.seconds/60)
+    #计算出跑批完成时间
+        end_date_time_stamp = (datetime.datetime.now() + datetime.timedelta(-0))
+        end_date_time_stamp_second = end_date_time_stamp
+        end_date_time_stamp = end_date_time_stamp.strftime("%Y/%m/%d %H:%M:%S")
+        # print("[%s] auto java end time：%s" % (self.name, end_date_time_stamp))
 
-            if 1 == 1:
-                #写入跑批标识标(本地mysql)
-                print("写入跑批标识标(本地mysql)")
-                self.sql.insert_into_sql_func(start_date_time_stamp, end_date_time_stamp, cost_time)
+        #计算出跑批时间
+        cost_time = end_date_time_stamp_second - start_date_time_stamp_second
+        cost_time = (cost_time.seconds/60)
 
-                #写入跑批标识表（oracle，孙振等看）
-                # print("写入跑批标识表（oracle，孙振等看")
-                # self.sql.update_sql_func(time_stamp, end_date_time_stamp)
-            else:
-                print("auto java is fail,will exit!")
-                exit()
+        if auto_java_flag:
+            #写入跑批标识标(本地mysql)
+            print("写入跑批标识标(本地mysql)")
+            self.sql.insert_into_sql_func(start_date_time_stamp, end_date_time_stamp, cost_time)
 
-        #不符合跑批条件
+            #写入跑批标识表（oracle，孙振等看）
+            print("写入跑批标识表（oracle，孙振等看")
+            self.sql.update_sql_func(time_stamp, end_date_time_stamp)
         else:
-            print("[%s] auto java is running,will exit!!!" % (self.name))
-            exit()
+            print("auto java is fail, will exit!")
+            os.exit()
 
 #oracle操作类
 class oracle_run_sql_calss(object):
@@ -179,44 +165,46 @@ time_stamp = time_stamp.strftime("%Y%m%d")
 
 
 #外层自动跑批,由并发多进程（注意！！是多进程调用）
-def auto_java_func(DB):
-
+def auto_java_func(DB_name, DB_rename):
     #原本单个实例化，变成由并发多进程 同时实例化同时进行批处理动作
     # fchry_sql = oracle_run_sql_calss("fchry", 226, "select * from ctl_fc")
     # fchry_auto_java = auto_java_DB_class("fchry", fchry_sql)
     # fchry_auto_java.run_auto_java_DB_func()
 
     #编凑实例化，这里有两个类
-    DB_sql = "%s_sql" % (DB)
-    DB_auto_java = "%s_auto_java" % (DB)
+    DB_sql = "%s_sql" % (DB_name)
+    DB_auto_java = "%s_auto_java" % (DB_name)
 
     ###变量式实例化，shell爱用的峰哥
-    DB_sql = oracle_run_sql_calss(DB, 226, "select * from ctl_fc")
-    DB_auto_java = auto_java_DB_class(DB, DB_sql)
+    DB_sql = oracle_run_sql_calss(DB_name, 226, "select * from ctl_fc")
+    DB_auto_java = auto_java_DB_class(DB_name, DB_rename, DB_sql)
 
-    #每个实例开始调用跑批
+    #检查是否已经传来数据
+    DB_auto_java.check_custom_upload_data_func()
+
+    #检查是否已经跑过批
+    DB_auto_java.check_DB_update_time_table_flag_func()
+
+    #检查跑批是否正在运行
+    DB_auto_java.check_auto_java_DB_isRunning_func()
+
+    #真正跑批
     DB_auto_java.run_auto_java_DB_func()
 
-##这里读配置文件，有这里控制要跑那些库
-def read_auto_java_DB_conf_func(conf_file):
-    DB_list = []
-    with open(conf_file, "r") as DB_conf_file:
-        for l1 in DB_conf_file.readlines():
-            l1 = l1.split()[0]
-            DB_list.append(l1)
-    return DB_list
-
-
 if __name__ == '__main__':
+    # conf_file = "/server/scripts/auto_java_DB_everyday/auto_java_scripts_sbs/DBlist.txt"
+    #win
     conf_file = "DBlist.txt"
-    DB_list = read_auto_java_DB_conf_func(conf_file)
 
     #进程池，同时8个
     pool = multiprocessing.Pool(8)
 
-    #开始进程池准备
-    for DB in DB_list:
-        print("父进程%s开始了 pid is %s" % (DB, os.getpid()))
-        pool.apply_async(auto_java_func, args=(DB, ))
+    #读配置文件，按照数据库名进行进程池添加
+    with open(conf_file, "r") as f:
+        for line in f.readlines():
+            line = line.strip()
+            DB_name = line.split()[0]
+            DB_rename = line.split()[1]
+            pool.apply_async(auto_java_func, args=(DB_name, DB_rename))
     pool.close()
     pool.join()

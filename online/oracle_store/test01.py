@@ -1,4 +1,4 @@
-import  cx_Oracle
+import cx_Oracle
 #
 db_223 = "dw/dw@10.138.22.223:1521/edw"
 #

@@ -1,19 +1,15 @@
-from multiprocessing import Pool
-import os, time, random
+import cx_Oracle
+import sys
 
-def long_time_task(name):
-    print('Run task %s (%s)...' % (name, os.getpid()))
-    start = time.time()
-    time.sleep(random.random() * 3)
-    end = time.time()
-    print('Task %s runs %0.2f seconds.' % (name, (end - start)))
 
-if __name__=='__main__':
-    print('Parent process %s.' % os.getpid())
-    p = Pool(2)
-    for i in range(5):
-        p.apply_async(long_time_task, args=(i,))
-    print('Waiting for all subprocesses done...')
-    p.close()
-    p.join()
-    print('All subprocesses done.')
+db_223 = "etl/etl@10.138.22.223:1521/edw"
+db_226 = "etl/etl_Haier@10.138.22.226:1521/edw"
+
+
+conn = cx_Oracle.connect(db_226)
+cur = conn.cursor()
+
+cur.execute("update ctl_fc set data_date='20170116',update_time=to_date('2011/11/11 11:11:11','yyyy/mm/dd HH24:MI:SS') where system_id='fccf'")
+conn.commit();
+cur.close()
+conn.close()

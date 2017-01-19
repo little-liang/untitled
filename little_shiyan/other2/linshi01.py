@@ -1,17 +1,15 @@
-import cx_Oracle
-import sys
-import datetime
-import time
-import subprocess
 
-conn = cx_Oracle.connect("etl/etl_Haier@10.138.22.226:1521/edw")
-cur = conn.cursor()
-# cur.execute(update_sql)
-cur.execute("update ctl_fc set data_date = '20170108',update_time = to_date('2017/11/11 11:11:11','yyyy/mm/dd HH24:MI:SS') where system_id = 'fchry'")
-conn.commit()
-conn.close()
+import smtplib
+from email.mime.text import MIMEText
+from email.utils import formataddr
 
 
+msg = MIMEText('邮件内容这个是邮件内容', 'plain', 'utf-8')
+msg['From'] = formataddr(["武沛齐名字随便，但必须有",'liangyanlong@hydsoft.com'])
+msg['To'] = formataddr(["走人名字随便，但必须有",'liangyanlong@hydsoft.com'])
+msg['Subject'] = "主题，邮件的主题"
 
-
-
+server = smtplib.SMTP("smtp.hydsoft.com", 25)
+server.login("liangyanlong@hydsoft.com", "Abcd1234")
+server.sendmail('liangyanlong@hydsoft.com', ['liangyanlong@hydsoft.com',], msg.as_string())
+server.quit()

@@ -10,20 +10,21 @@ conn = cx_Oracle.connect(db_226)
 cur = conn.cursor()
 
 result = cur.execute("select * from ctl_fc")
+# result = cur.execute("select * from fcbi.oh_m02_customer_info")
 
 # E$_START_DATE = '20161225'
 # "select * from fcib.oh_FILEACSS where rownum <= 5"
 
 for i in cur.description:
     i = i[0]
-    i = "%-25s" % i
+    i = "%-40s" % i
     sys.stdout.write(i)
 print("")
 
 for i in result:
     for line in range(len(i)):
         k = str(i[line])
-        k = "%-25s" % k
+        k = "%-40s" % k
         sys.stdout.write(k)
     print("")
 

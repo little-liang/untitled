@@ -165,7 +165,17 @@ time_stamp = time_stamp.strftime("%Y%m%d")
 if __name__ == "__main__":
       bi = DB("bi", "conf/bi_important_table.list.txt", "cfdata/bi", "mv_cfdata/bi")
       bi.check_success_flag_func()
-      print("ok111")
-#     hairongyi.mv_important_table_file_func()
-#     hairongyi.mv_no_important_table_file_func()
-#
+
+#diaoyong跑批，，调用完之后
+#run auto java
+
+#把20161228 改成20161228_part_1
+#把20161228_part_2 改名20161228
+
+#diaoyong跑批，，调用完之后
+#run auto java
+
+#把20161228_part_1所有数据移动到20161228
+#rmdir 20161228_part_1
+
+#done!
