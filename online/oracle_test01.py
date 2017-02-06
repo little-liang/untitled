@@ -3,18 +3,17 @@ import sys
 
 
 db_223 = "etl/etl@10.138.22.223:1521/edw"
+# db_223 = "dw/dw@10.138.22.223:1521/edw"
 db_226 = "etl/etl_Haier@10.138.22.226:1521/edw"
 
 
 conn = cx_Oracle.connect(db_226)
 cur = conn.cursor()
 
+# result = cur.execute("select * from ETL.CTL_INCREMENT_ZCJ WHERE GROUP_ID = 'FCBI'")
 result = cur.execute("select * from ctl_fc")
-# result = cur.execute("select * from fcbi.oh_m02_customer_info")
 
-# E$_START_DATE = '20161225'
-# "select * from fcib.oh_FILEACSS where rownum <= 5"
-
+#W02_STA_ASSETS_BALANCE
 for i in cur.description:
     i = i[0]
     i = "%-40s" % i

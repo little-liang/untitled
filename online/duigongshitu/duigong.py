@@ -86,12 +86,10 @@ print(len(tmp))
 dw_main = call_db_store_class(223)
 
 #dw --》edwpdc 3部曲
-dw_main.dw_main_func("dw")
-#dw_main.dw_part_1_func()
-dw_main.dw_main_func("edwpdc")
-# dw_main.dw_part_2_func()
+# dw_main.dw_main_func("dw")
+# dw_main.dw_main_func("edwpdc")
 
 
 
 #这个支持dw的批量跑批
-#dw_main.for_dw_main_func("dw", 20170101, 20170110)
+dw_main.for_dw_main_func("dw", 20170101, 20170110)
