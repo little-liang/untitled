@@ -1,7 +1,9 @@
 '''实现加减乘除及拓号优先级解析
-用户输入 1 - 2 * ( (60-30 +(-40/5) * (9-2*5/3 + 7 /3*99/4*2998 +10 * 568/14 )) - (-4*3)/ (16-3*2) )
+用户输入 1 - 2 * ( (60-30 +(-40/5) * (9-2*5/3 + 7 /3*99/4*2998 +10 * 568/14 )) - (-4*3)/ (16-3*2)
 等类似公式后，必须自己解析里面的(),+,-,*,/符号和公式，
 运算后得出结果，结果必须与真实的计算器所得出的结果一致'''
+
+##目前办法是找出括号里面，找到最里面，然后算出来，替换括号里面的！##
 
 import re
 def liukuohao(user_input):
@@ -68,7 +70,8 @@ def kaishile(user_input):
     pattern = re.compile(r"^\(")
     re_result = re.match(pattern, user_input)
     if re_result:
-        print(1)
+        # print(1)
+        pass
     else:
         re_result = liukuohao(user_input)
         return "".join(re_result)
@@ -82,11 +85,11 @@ def kaishile2(user_input):
 
 if __name__ == '__main__':
     user_input = "1-2*((60-30+(-40/5)*(9-2*5/3+7/3*99/4*2998+10*568/14))-(-4*3)/(16-3*2))"
-    print(user_input)
+    # print(user_input)
 
     #第一步，如果开头不是括号
     re_result = kaishile(user_input)
-    print(re_result)
+    # print(re_result)
 
     #2，开头是括号
     re_result = kaishile2(re_result)
@@ -95,13 +98,13 @@ if __name__ == '__main__':
     #3这时候，肯定因式分解了
 
     re_result = zhijiechai(re_result)
-    # print(re_result)
+    print(re_result)
 
     for l1 in re_result:
         print(l1)
-        l2 = kaishile(l1)
-        print(l2)
-        break
+
+
+
 
         ##最开头出现问题1-2*((60-30+(-40/5)*(9-2*5/3+7/3*99/4*2998+10*568/14))-(-4*3)/(16-3*2))
         ##应该是1自己一组，-号自己一组，2*（）再一组，这里没弄对，运算符号还没保存

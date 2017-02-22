@@ -1,0 +1,66 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="static/css/custom.css" />
+</head>
+
+<body>
+<h2>This is a heading</h2>
+<p>This is a paragraph.</p>
+<p>This is another paragraph.</p>
+<button>Click me</button>
+<div class="move_div">
+    <span>Welcome</span>
+</div>
+
+<div id="current_time">
+</div>
+<button id="stop_time" type="button">停止计时</button>
+</body>
+
+
+<script type="text/javascript" src="static/js/jquery.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function(){
+
+        //显示时间，每1秒刷新一次
+
+        var time_ele = $("#current_time");
+        var time_counter = setInterval(function(){
+           $(time_ele).text(new Date());
+            console.log(new Date());
+        },1000);
+
+        $("#stop_time").click(function(){
+        clearInterval(time_counter);
+        });
+    });
+
+
+
+
+    $(".move_div").click(function(){
+        $(this).addClass("c2");
+    });
+
+    $(document).ready(function(){
+       var name = {
+           "name" : 'alex',
+           'age' : '12',
+           'job' : 'IT'
+       }
+        
+//        #这个函数属于上面的function,原生js写法
+        for (i in name){
+            console.log(i + '----' + name[i]);
+        }
+//        #这个函数属于上面的function,jQuery写法，功能一样的
+        $.each(name, function (key,val) {
+            console.log(key + '--->' + val);
+        })
+        
+    });
+
+
+</script>
+</html>
