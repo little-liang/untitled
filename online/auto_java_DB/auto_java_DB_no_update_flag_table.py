@@ -14,9 +14,8 @@ class auto_java_DB_class(object):
         mv_cfdata_dir = "/data/mv_cfdata"
         mv_cfdata_dir = "%s/%s/%s" % (mv_cfdata_dir, self.rename, time_stamp)
 
-        print(mv_cfdata_dir)
         if len(os.listdir(mv_cfdata_dir)) == 0:
-            print("The [%s] no data!, will eixt!" % (mv_cfdata_dir))
+            print("The [%s] [%s] no data!, will eixt!" % (self.name, mv_cfdata_dir))
             os.exit()
 
 
@@ -41,9 +40,16 @@ class auto_java_DB_class(object):
         #调用ps 命令查询相关进程
         cmd = "ps aux|grep java|egrep -v 'u01|sh'|grep"
         cmd = "%s '%s'|wc -l" % (cmd, self.name)
-
+        cmd = "netstat -n"
+        print(cmd)
+        #############################
         try:
-            a = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            a = subprocess.run(cmd,check=True , stdout=subprocess.PIPE)
+
+            #判断输出的进程信息做个删选
+            print(a.stdout.readlines())
+        #################################
+
             for l1 in a.stdout.readlines():
                 l1 = l1.strip()
                 l1 = l1.decode()
@@ -84,13 +90,14 @@ class auto_java_DB_class(object):
 
         try:
             auto_java_flag = True
-            a = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            a = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
             for l1 in a.stdout.readlines():
                 l1 = l1.strip()
                 l1 = l1.decode()
 
         except Exception:
-            print("can't run auto java,pls check the code")
+            pass
+            # print("can't run auto java,pls check the code")
 
     #计算出跑批完成时间
         end_date_time_stamp = (datetime.datetime.now() + datetime.timedelta(-0))
@@ -101,6 +108,7 @@ class auto_java_DB_class(object):
         #计算出跑批时间
         cost_time = end_date_time_stamp_second - start_date_time_stamp_second
         cost_time = (cost_time.seconds/60)
+        cost_time = round(cost_time, 2)
 
         if auto_java_flag:
             #写入跑批标识标(本地mysql)
@@ -176,23 +184,23 @@ def auto_java_func(DB_name, DB_rename):
     DB_auto_java = "%s_auto_java" % (DB_name)
 
     ###变量式实例化，shell爱用的峰哥
-    DB_sql = oracle_run_sql_calss(DB_name, 226, "select * from ctl_fc")
+    DB_sql = oracle_run_sql_calss(DB_name, 223, "select * from ctl_fc")
     DB_auto_java = auto_java_DB_class(DB_name, DB_rename, DB_sql)
 
     #检查是否已经传来数据
-    DB_auto_java.check_custom_upload_data_func()
+    # DB_auto_java.check_custom_upload_data_func()
 
     #检查是否已经跑过批
-    DB_auto_java.check_DB_update_time_table_flag_func()
+    # DB_auto_java.check_DB_update_time_table_flag_func()
 
     #检查跑批是否正在运行
     DB_auto_java.check_auto_java_DB_isRunning_func()
 
     #真正跑批
-    DB_auto_java.run_auto_java_DB_func()
+    # DB_auto_java.run_auto_java_DB_func()
 
 if __name__ == '__main__':
-    # conf_file = "/server/scripts/auto_java_DB_everyday/auto_java_scripts_sbs/DBlist.txt"
+    conf_file = "/server/scripts/auto_java_DB_everyday/auto_java_scripts_sbs/DBlist.txt"
     #win
     conf_file = "DBlist.txt"
 

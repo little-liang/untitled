@@ -1,0 +1,33 @@
+/*这里直接给标签样式*/
+html,body{
+    height: 100%;
+    margin: 0;
+}
+
+/*这里给类名样式*/
+.header{ /*类名*/
+    height: 85px;
+    background: rgba(29, 41, 40, 0.37);
+    padding: 0;
+    padding-top: 8px;
+}
+
+/*这里是对id的样式*/
+#menu_content{
+    font-size: large;
+}
+
+.move_div{
+    height: 100px;
+    width:100px;
+    background: greenyellow;
+}
+
+.c2{
+    background: red;
+}
+
+#current_time{
+    font-size: 40px;
+    background: gray;
+}
