@@ -1,23 +1,10 @@
-import subprocess,os
+import subprocess, sys
+import os
 
-cmd = "ps -ef|grep java|egrep -v 'u01|sh|py'"
+print('E:\graduation_project\hosts\\backend\multi_task.py')
+aa = 'E:\graduation_project\hosts\\backend\multi_task.py'
 
-print(cmd)
-# # 检查shell命令是否能够执行
-try:
-    p = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
-    print(p.decode())
+if os.path.isfile(aa):
+    print("ok")
+subprocess.run(['python', aa, '-task_id', '1111', '-run_type', 'by_paramiko'])
 
-except subprocess.CalledProcessError:
-    print("The command [%s] wrong, will exit!" % (cmd))
-    os._exit()
-
-print("shell ok!")
-
-
-# 查跑批进程是否正在运行
-# print("%s %s" % (self.name, update_table_time))
-# if ps_status.__contains__(self.name) and ps_status.__contains__(update_table_time):
-#     print("ok")
-
-os._exit()
