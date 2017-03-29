@@ -1,10 +1,14 @@
-import subprocess, sys
-import os
+import time
+import paramiko
 
-print('E:\graduation_project\hosts\\backend\multi_task.py')
-aa = 'E:\graduation_project\hosts\\backend\multi_task.py'
 
-if os.path.isfile(aa):
-    print("ok")
-subprocess.run(['python', aa, '-task_id', '1111', '-run_type', 'by_paramiko'])
+t = paramiko.Transport('192.168.10.103', 22)
+t.connect(username='root', password='Abcd@1234')
+
+sftp = paramiko.SFTPClient.from_transport(t)
+
+localfile = r'tmp.log'
+remotefile = r'/tmp/tmp.log'
+sftp.put(localfile, remotefile)
+
 

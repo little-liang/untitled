@@ -86,8 +86,8 @@ print(len(tmp))
 dw_main = call_db_store_class(223)
 
 #dw --》edwpdc 3部曲
-# dw_main.dw_main_func("dw")
-# dw_main.dw_main_func("edwpdc")
+dw_main.dw_main_func("dw")
+dw_main.dw_main_func("edwpdc")
 
 
 

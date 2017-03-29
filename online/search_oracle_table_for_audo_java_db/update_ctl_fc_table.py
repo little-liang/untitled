@@ -2,13 +2,13 @@ import cx_Oracle
 import sys
 
 
-db_223 = "wsd/wsd@10.138.22.223:1521/edw"
+db_223 = "etl/etl@10.138.22.223:1521/edw"
 
 
 conn = cx_Oracle.connect(db_223)
 cur = conn.cursor()
 
-result = cur.execute("delete from LOG_PROC_EXEC where proc_name='PACK_YANLONG_TEST.proc_all'")
+result = cur.execute("update ctl_fc set data_date='20170131' where system_id='fchry'")
 conn.commit()
 cur.close()
 conn.close()

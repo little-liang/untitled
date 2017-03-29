@@ -4,13 +4,12 @@ import sys
 import calendar
 
 class Call_StoredProcedure_Class(object):
-    def __init__(self, StoredProcedure_Name, Server_host):
+    def __init__(self,  Server_host):
 
         #返回值必须是这样的，这里写成了全局变量
         global func_return_code, func_return_message
         func_return_code = ''
         func_return_message = '1234567890123456789012345'
-        self.StoredProcedure_Name = StoredProcedure_Name
         self.Server_host = Server_host
         if Server_host == 223:
             self.Server_host_id = 'wsd/wsd@10.138.22.223:1521/edw'
@@ -18,17 +17,37 @@ class Call_StoredProcedure_Class(object):
             self.Server_host_id = 'wsd/wsd@10.138.22.226:1521/edw'
 
     #大屏 每日 调度动作
-    def EveryDay_Task_Main_Func(self):
-        now_date = datetime.datetime.now() + datetime.timedelta(-1)
-        now_date = now_date.strftime("%Y-%m-%d")
-        self.Call_StoredProcedure(now_date)
+    def EveryDay_Task_Main_Func(self, day_begin_string, day_end_string, *StoredProcedure_Name):
+
+        day_begin_datetime = datetime.datetime.strptime(day_begin_string, "%Y%m%d")
+        day_end_datetime = datetime.datetime.strptime(day_end_string, "%Y%m%d")
+        delta = datetime.timedelta(days=1)
+        data_date_tmp = day_begin_datetime
+
+        print()
+
+
+        # #循环调取 存储过程
+        while data_date_tmp < day_end_datetime:
+            data_date = data_date_tmp.strftime("%Y-%m-%d")
+
+            #一个调度由多个存储过程组成
+            if len(StoredProcedure_Name) > 1:
+                for line in StoredProcedure_Name:
+                    self.Call_StoredProcedure(line, data_date)
+                data_date_tmp = data_date_tmp + delta
+
+            # 一个调度由1个存储过程组成
+            elif len(StoredProcedure_Name) == 1:
+                pass
+
 
     #调取存储过程代码
-    def Call_StoredProcedure(self, data_date):
-        print("正在调用 [%s] ..." % (data_date))
+    def Call_StoredProcedure(self, StoredProcedure_Name, data_date):
+        print("正在调用 存储过程[%s] 日期[%s] ..." % (StoredProcedure_Name, data_date))
         # conn = cx_Oracle.connect(self.Server_host_id)
         # cur = conn.cursor()
-        # res = cur.callproc(self.StoredProcedure_Name, [data_date, func_return_code, func_return_message])
+        # res = cur.callproc(StoredProcedure_Name, [data_date, func_return_code, func_return_message])
         # print(res, "\n")
         # cur.close()
         # conn.close()
@@ -63,5 +82,5 @@ class Call_StoredProcedure_Class(object):
 
 
 if __name__ == '__main__':
-    daping = Call_StoredProcedure_Class("WSD.pack_wide_screen_display.proc_all", 226)
-    daping._special()
+    duigong = Call_StoredProcedure_Class(223)
+    duigong.EveryDay_Task_Main_Func('20170101', '20170103', "a1", 'a2', 'a3')

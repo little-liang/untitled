@@ -23,7 +23,8 @@ class auto_java_DB_class(object):
         mv_cfdata_dir, self.rename, update_table_time, update_table_time)
 
         if os.path.isfile(mv_cfdata_dir_success_file):
-           print("check the condition, The [%s] [%s] success file is exist, pass, continue...\n" % (self.name, mv_cfdata_dir))
+            pass
+           # print("check the condition, The [%s] [%s] success file is exist, pass, continue...\n" % (self.name, mv_cfdata_dir))
         else:
            print("The file [%s] is not exist, will exit!\n" % (mv_cfdata_dir_success_file))
            os._exit()
@@ -38,8 +39,8 @@ class auto_java_DB_class(object):
             print("[%s] DB [%s] auto_java is done already!" % (self.name, update_table_time))
             os._exit()
         elif self.time_stamp > update_table_time:
-            print("[%s] DB [%s] auto_java  will start..." % (self.name, (
-            datetime.datetime.strptime(uptate_table[1], "%Y%m%d") + datetime.timedelta(days=1)).strftime("%Y%m%d")))
+            pass
+            # print("[%s] DB [%s] auto_java  will start..." % (self.name, (datetime.datetime.strptime(uptate_table[1], "%Y%m%d") + datetime.timedelta(days=1)).strftime("%Y%m%d")))
         else:
             print("The [%s] time [%s] is wrong, pls check ctl_fc table" % (self.name, update_table_time))
             os._exit()
@@ -74,7 +75,7 @@ class auto_java_DB_class(object):
         # 这个标识用来是否更新标识表，和插入跑批数据
         auto_java_flag = False
 
-        print("[%s] DB not auto java! will run ... " % (self.name))
+        # print("[%s] DB not auto java! will run ... " % (self.name))
         sys.stdout.flush()
 
         ##取跑批开始时间
@@ -92,7 +93,7 @@ class auto_java_DB_class(object):
         arg4 = update_table_time
 
         cmd = "%s %s %s %s" % (arg1, arg2, arg3, arg4)
-        print(cmd)
+        # print(cmd)
         sys.stdout.flush()
 
         try:
@@ -112,7 +113,7 @@ class auto_java_DB_class(object):
         cost_time = end_date_time_stamp_second - start_date_time_stamp_second
         cost_time = (cost_time.seconds / 60)
         cost_time = round(cost_time, 2)
-        print("[%s] auto java end time：%s" % (self.name, cost_time))
+        # print("[%s] auto java end time：%s" % (self.name, cost_time))
         sys.stdout.flush()
 
         if auto_java_flag:
@@ -121,7 +122,7 @@ class auto_java_DB_class(object):
             # self.sql.insert_into_sql_func(start_date_time_stamp, end_date_time_stamp, cost_time)
 
             # 写入跑批标识表（oracle，孙振等看）
-            print("写入跑批标识表（oracle，孙振等看")
+            print("[%s] [%s] 写入跑批标识表oracle" % (self.name, update_table_time))
             self.sql.update_sql_func(update_table_time, end_date_time_stamp)
         else:
             print("auto java is fail, will exit!\n")
@@ -149,7 +150,7 @@ class auto_java_DB_class(object):
         DB_auto_java.check_auto_java_DB_isRunning_func()
 
         # 检查是否已经传来数据
-        # DB_auto_java.check_custom_upload_data_func()
+        DB_auto_java.check_custom_upload_data_func()
 
         # 真正跑批
         DB_auto_java.run_auto_java_DB_func()
