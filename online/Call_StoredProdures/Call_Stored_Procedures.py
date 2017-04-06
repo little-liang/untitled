@@ -17,15 +17,6 @@ def foo(func):
         return ret
     return _deco
 
-
-'''etl.t_Jobs_Order;
-etl.t_Jobs_Frequency;'''
-
-
-
-
-
-
 class Call_StoredProcedure_Class(object):
     def __init__(self,  Server_host):
 
@@ -114,8 +105,9 @@ class Call_StoredProcedure_Class(object):
 
 
 if __name__ == '__main__':
-    duigong = Call_StoredProcedure_Class(223)
-    duigong.Maual_Task_Func('20170211', '20170216', 'dw.pack_dw_all_new')
+    daping = Call_StoredProcedure_Class(226)
+    print(sys.argv)
+    daping.Maual_Task_Func(sys.argv[1], sys.argv[2], 'WSD.pack_fin_income_margin.proc_all')
 
     '''使用方法，如对公项目
         第一种：每日调度 T-1 昨日数据，生产库调度
