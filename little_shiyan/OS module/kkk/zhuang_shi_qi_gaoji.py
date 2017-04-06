@@ -7,9 +7,9 @@ def login():
 
 #装饰器模块
 def deco(func):
-    def inner(*args,**kwargs):
+    def inner(*args, **kwargs):
         login()
-        func(*args,**kwargs)
+        func(*args, **kwargs)
     return inner
 
 #基础代码模块
@@ -23,7 +23,6 @@ def picture(name,sex,ip):
 
 
 
-def
 #运行开始模块
 if __name__=='__main__':
     movie("龙哥","帅哥")

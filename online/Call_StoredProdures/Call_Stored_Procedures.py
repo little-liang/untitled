@@ -3,6 +3,29 @@ import datetime, time
 import sys
 import calendar
 
+
+
+
+def foo(func):
+    def _deco(arg1, arg2):
+        start_time = time.time()
+        ret = func(arg1, arg2)
+        end_time = time.time()
+        cost_time = end_time - start_time
+        cost_time = round(cost_time / 60, 2)
+        print(cost_time)
+        return ret
+    return _deco
+
+
+'''etl.t_Jobs_Order;
+etl.t_Jobs_Frequency;'''
+
+
+
+
+
+
 class Call_StoredProcedure_Class(object):
     def __init__(self,  Server_host):
 
@@ -12,17 +35,17 @@ class Call_StoredProcedure_Class(object):
         func_return_message = '1234567890123456789012345'
         self.Server_host = Server_host
         if Server_host == 223:
-            self.Server_host_id = 'wsd/wsd@10.138.22.223:1521/edw'
+            self.Server_host_id = 'dw/dw@10.138.22.223:1521/edw'
         elif Server_host == 226:
             self.Server_host_id = 'wsd/wsd@10.138.22.226:1521/edw'
 
-
+    @foo
     def EveryDay_Task_Func(self, *StoredProcedures_Name):
         day_now_datetime_str = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime("%Y%m%d")
+
         for SP_name in StoredProcedures_Name:
+            print(SP_name)
             self.Call_StoredProcedure(SP_name, day_now_datetime_str)
-
-
 
 
 
@@ -55,12 +78,12 @@ class Call_StoredProcedure_Class(object):
     #调取存储过程代码
     def Call_StoredProcedure(self, StoredProcedure_Name, data_date):
         print("正在调用 存储过程[%s] 日期[%s] ..." % (StoredProcedure_Name, data_date))
-        # conn = cx_Oracle.connect(self.Server_host_id)
-        # cur = conn.cursor()
-        # res = cur.callproc(StoredProcedure_Name, [data_date, func_return_code, func_return_message])
-        # print(res, "\n")
-        # cur.close()
-        # conn.close()
+        conn = cx_Oracle.connect(self.Server_host_id)
+        cur = conn.cursor()
+        res = cur.callproc(StoredProcedure_Name, [data_date, func_return_code, func_return_message])
+        print(res, "\n")
+        cur.close()
+        conn.close()
 
     #大屏 18:00 特殊调度动作
     def _daping_special(self):
@@ -90,7 +113,21 @@ class Call_StoredProcedure_Class(object):
             data_date_tmp = data_date_tmp + delta
 
 
-
 if __name__ == '__main__':
-    daping = Call_StoredProcedure_Class(226)
-    daping.EveryDay_Task_Func("a1", 'a2')
+    duigong = Call_StoredProcedure_Class(223)
+    duigong.Maual_Task_Func('20170211', '20170216', 'dw.pack_dw_all_new')
+
+    '''使用方法，如对公项目
+        第一种：每日调度 T-1 昨日数据，生产库调度
+            duigong = Call_StoredProcedure_Class(226)
+            duigong.EveryDay_Task_Func("a1", 'a2')  每日调度单个存储过程
+            duigong.EveryDay_Task_Func("a1", 'a2')  每日调度两个存储过程
+
+        第二种：手动调度
+            duigong = Call_StoredProcedure_Class(226)
+            duigong.Maual_Task_Func('20170101', '20170103', 'a1', 'a2')
+
+        第三种：特殊调度：如大屏18:00 非月末调度当月所有数据
+            duigong = Call_StoredProcedure_Class(226)
+            duigong._daping_special()
+    '''

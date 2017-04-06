@@ -24,8 +24,7 @@ def movie(name):
 
 #运行开始模块
 if __name__=='__main__':
-    aaa=movie("龙哥")
-    print(aaa)
+    movie("龙哥")
 
 
 
