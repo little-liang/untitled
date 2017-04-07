@@ -128,8 +128,12 @@ def judge_the_task_group_run_func(task_group_dict):
 
                     if run_time == "09:00":
                         print("请启动作业程序：", "作业组：", task_group_id, "作业类型：", task_type, "作业时间：", run_time)
+                        # return task_group_id, task_type, run_time
 
-
+                    if run_time == "07:00":
+                        print("请启动作业程序：", "作业组：", task_group_id, "作业类型：", task_type, "作业时间：", run_time)
+                        # return task_group_id, task_type, run_time
+                    ##写到这里了，准备判断后，返回一个要跑批的字典
 #主程序
 def main_func():
     # task_group_dict = get_config_json()
