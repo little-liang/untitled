@@ -1,5 +1,174 @@
 import cx_Oracle, sys, datetime, time, subprocess, os, atexit, string, multiprocessing
 from signal import SIGTERM
+import threading
+
+'''
+aa = \
+#     {
+#         'task_group_id':
+#             {
+#                 1:
+#                     {
+#                         'job_id':
+#                             {
+#                                 1:
+#                                     {
+#                                         'para_info': 'i_data_date,i_type',
+#                                         'run_time': '07:00',
+#                                         'storeprodure_name': 'proc_all',
+#                                     },
+#                                 2:
+#                                     {'para_info': 'i_data_date,i_type',
+#                                      'run_time': '07:00',
+#                                      'storeprodure_name': 'proc_all'
+#                                      },
+#                                 3:
+#                                     {'para_info': 'i_data_date,i_type',
+#                                      'run_time': '07:00',
+#                                      'storeprodure_name': 'proc_all'
+#                                      },
+#                                 4:
+#                                     {'para_info': 'i_data_date,i_type',
+#                                      'run_time': '07:00',
+#                                      'storeprodure_name': 'proc_all'
+#                                      }
+#                             }
+#                     },
+#
+#                 2:
+#                     {
+#                         'job_id':
+#                             {
+#                                 1:
+#                                     {
+#                                         'para_info': 'date',
+#                                         'run_time': '07:00',
+#                                         'storeprodure_name': 'pro1',
+#                                     },
+#
+#                                 2:
+#                                     {
+#                                         'para_info': 'date',
+#                                         'run_time': '07:00',
+#                                         'storeprodure_name': 'pro2',
+#                                     }
+#                             }
+#                     }
+#             }
+#     }
+#
+# print(aa)
+
+
+
+'''
+
+
+# 守护进程包裹类
+class Daemon:
+    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+        # 需要获取调试信息，改为stdin='/dev/stdin', stdout='/dev/stdout', stderr='/dev/stderr'，以root身份运行。
+        self.stdin = stdin
+        self.stdout = stdout
+        self.stderr = stderr
+        self.pidfile = pidfile
+
+    def _daemonize(self):
+        try:
+            pid = os.fork()  # 第一次fork，生成子进程，脱离父进程
+            if pid > 0:
+                sys.exit(0)  # 退出主进程
+        except OSError as e:
+            sys.stderr.write('fork #1 failed: %d (%s)\n' % (e.errno, e.strerror))
+            sys.exit(1)
+
+        os.chdir("/")  # 修改工作目录
+        os.setsid()  # 设置新的会话连接
+        os.umask(0)  # 重新设置文件创建权限
+
+        try:
+            pid = os.fork()  # 第二次fork，禁止进程打开终端
+            if pid > 0:
+                sys.exit(0)
+        except OSError as e:
+            sys.stderr.write('fork #2 failed: %d (%s)\n' % (e.errno, e.strerror))
+            sys.exit(1)
+
+        # 重定向文件描述符
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        # dup2函数原子化地关闭和复制文件描述符，重定向到/dev/nul，即丢弃所有输入输出
+        si = open(self.stdin, 'r')
+        so = open(self.stdout, 'a+')
+        se = open(self.stderr, 'a+')
+        os.dup2(si.fileno(), sys.stdin.fileno())
+        os.dup2(so.fileno(), sys.stdout.fileno())
+        os.dup2(se.fileno(), sys.stderr.fileno())
+
+        # 注册退出函数，根据文件pid判断是否存在进程
+        atexit.register(self.delpid)
+        pid = str(os.getpid())
+        open(self.pidfile, 'w+').write('%s\n' % pid)
+
+    def delpid(self):
+        os.remove(self.pidfile)
+
+    def start(self):
+        # 检查pid文件是否存在以探测是否存在进程
+        try:
+            pf = open(self.pidfile, 'r')
+            pid = int(pf.read().strip())
+            pf.close()
+        except IOError:
+            pid = None
+
+        if pid:
+            message = 'pidfile %s already exist. Daemon already running!\n'
+            sys.stderr.write(message % self.pidfile)
+            sys.exit(1)
+
+            # 启动监控
+        self._daemonize()
+        self._run()
+
+    def stop(self):
+        # 从pid文件中获取pid
+        try:
+            pf = open(self.pidfile, 'r')
+            pid = int(pf.read().strip())
+            pf.close()
+        except IOError:
+            pid = None
+
+        if not pid:  # 重启不报错
+            message = 'pidfile %s does not exist. Daemon not running!\n'
+            sys.stderr.write(message % self.pidfile)
+            return
+
+            # 杀进程
+        try:
+            while 1:
+                os.kill(pid, SIGTERM)
+                time.sleep(0.1)
+        except OSError as err:
+            err = str(err)
+            if err.find('No such process') > 0:
+                if os.path.exists(self.pidfile):
+                    os.remove(self.pidfile)
+            else:
+                print(str(err))
+                sys.exit(1)
+
+    def restart(self):
+        self.stop()
+        self.start()
+
+    def _run(self):
+        """ run your fun"""
+        while True:
+            main_func()
+            time.sleep(2)
 
 # oracle操作类
 class oracle_run_sql_class(object):
@@ -47,30 +216,30 @@ class Call_StoredProcedure_Class(object):
         func_return_message = '1234567890123456789012345'
         self.Server_host = Server_host
         if Server_host == 223:
-            self.Server_host_id = 'dw/dw@10.138.22.223:1521/edw'
+            self.Server_host_id = 'etl/etl@10.138.22.223:1521/edw'
         elif Server_host == 226:
             self.Server_host_id = 'wsd/wsd@10.138.22.226:1521/edw'
 
     @foo
-    def EveryDay_Task_Func(self, task_group_id, task_type, run_time):
+    def Before_Call_StoredProcedure(self, StoredProcedure_Name_list):
         pass
-        ##查询到对应存储过程名
-        ##又得用到
+
+
+
 
         # 调取存储过程代码
-    def Call_StoredProcedure(self, StoredProcedure_Name, data_date):
-        print("正在调用 存储过程[%s] 日期[%s] ..." % (StoredProcedure_Name, data_date))
-        # conn = cx_Oracle.connect(self.Server_host_id)
-        # cur = conn.cursor()
-        # res = cur.callproc(StoredProcedure_Name, [data_date, func_return_code, func_return_message])
-        # print(res, "\n")
-        # cur.close()
-        # conn.close()
+    def Call_StoredProcedure(self, StoredProcedure_Name, para_list):
+        conn = cx_Oracle.connect(self.Server_host_id)
+        cur = conn.cursor()
+        res = cur.callproc(StoredProcedure_Name, para_list)
+        cur.close()
+        conn.close()
+        return res
 
 # 子程序1.1抽取 字典 配置表 1 找出所有作业组
 def get_config_json():
     task_group_list = []
-    search_sql = "select DISTINCT(group_id) from etl.t_Jobs_Order"
+    search_sql = "select DISTINCT(group_id) from etl.t_Jobs_frequency"
     task_obj = oracle_run_sql_class(223)
     result = task_obj.search_sql_func(search_sql)
     for i in result:
@@ -114,11 +283,21 @@ def search_task_group_type_and_detail_func(task_group_list):
 ##判断作业组是否应该执行（是否到点了）
 def judge_the_task_group_run_func(task_group_dict):
 
-    now_date_time = (datetime.datetime.now() + datetime.timedelta(-1)).strftime("%H:%S")
+    #甩出来一个即将执行的任务字典
+    will_start_task_group_flag = False
+    will_start_task_group_dict = {}
+    will_start_task_group_dict['task_group_id'] = {}
+
+    # print(task_group_dict)
+
+    now_date_time = (datetime.datetime.now()).strftime("%H:%S")
     now_date_time = "%2s" % (now_date_time)
 
     #循环作业组
+
     for task_group_id in task_group_dict.keys():
+        will_start_task_group_dict['task_group_id'][task_group_id] = {}
+        will_start_task_group_dict['task_group_id'][task_group_id]['job_id'] = {}
         #循环作业组作业类型
         for task_type in task_group_dict[task_group_id].keys():
             #循环作业组作业类型不为空
@@ -126,21 +305,168 @@ def judge_the_task_group_run_func(task_group_dict):
                 #作业组的run_time
                 for run_time in task_group_dict[task_group_id][task_type]:
 
-                    if run_time == "09:00":
-                        print("请启动作业程序：", "作业组：", task_group_id, "作业类型：", task_type, "作业时间：", run_time)
-                        # return task_group_id, task_type, run_time
+                    #当前时间,如果到时间了
+                    # print(now_date_time)
+                    now_date_time = '00:00'
+                    if now_date_time == run_time:
 
-                    if run_time == "07:00":
-                        print("请启动作业程序：", "作业组：", task_group_id, "作业类型：", task_type, "作业时间：", run_time)
-                        # return task_group_id, task_type, run_time
-                    ##写到这里了，准备判断后，返回一个要跑批的字典
+                        will_start_task_group_flag = True
+                        #查询出对应的作业组对应的job_id
+                        search_sql = "select job_id from etl.t_Jobs_order where group_id = '%s'" % (task_group_id)
+                        task_obj = oracle_run_sql_class(223)
+                        result = task_obj.search_sql_func(search_sql)
+                        for job_id in result:
+                            will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][job_id[0]] = {}
+
+                            # 查询出对应的作业组对应的job_id下的存储过程名字及参数
+                            search_sql = "select pro_name, para_in, prejob_id from etl.t_Jobs_order where group_id = '%s' and job_id = '%s'" % (task_group_id, job_id[0])
+                            task_obj = oracle_run_sql_class(223)
+                            result = task_obj.search_sql_func(search_sql)
+                            for i in result:
+                                will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][job_id[0]]['storeprodure_name'] = i[0]
+                                will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][job_id[0]]['para_info'] = i[1]
+                                will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][job_id[0]]['prejob_id'] = i[2]
+                                will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][job_id[0]]['run_time'] = run_time
+
+    if will_start_task_group_flag:
+        # print(will_start_task_group_dict)
+        return will_start_task_group_dict
+    else:
+        print("没到指定的时间", now_date_time)
+        pass
+
+##作业组执行程序 2.1 开始多进程
+def start_the_task_group_run_func(will_start_task_group_dict):
+
+    # 查询 多少个作业组 就起多少个子进程
+    pool = multiprocessing.Pool(len(will_start_task_group_dict['task_group_id']))
+
+    # 查询 多少个作业组 就起多少个子进程
+    for task_group_id in range(1, (len(will_start_task_group_dict['task_group_id'])) + 1):
+        pool.apply_async(_start_the_task_group_run_func, args=(will_start_task_group_dict['task_group_id'][task_group_id],))
+    pool.close()
+    pool.join()
+
+##作业组执行程序 2.2 作业组并发多线程
+def _start_the_task_group_run_func(job_id_dict):
+
+    # 定义线程池
+    thread_list = []
+
+    # 主进程开始
+    # print("%s主线程正在运行...\n" % (threading.current_thread().name))
+
+
+    #依次调用成功的存储过程
+    global done_SP_list
+    done_SP_list = []
+
+    #应该调用的所有的存储过程
+    global all_done_SP_list
+    all_done_SP_list = []
+
+    for job_id in range(1, len(job_id_dict['job_id']) + 1):
+        # print(job_id_dict['job_id'][job_id])
+        t = threading.Thread(target=__start_the_task_group_run_func, args=(job_id_dict['job_id'][job_id],))
+        t.start()
+        thread_list.append(t)
+
+    ##等待子进程或者线程结束后再继续往下运行（这时候只要线程 池中有线程，就接着等。。）
+    for t in thread_list:
+        t.join()
+
+##作业组执行程序 2.3 作业组并发多线程
+def __start_the_task_group_run_func(job_info):
+    # print(job_info['prejob_id'])
+    now_date_time = ((datetime.datetime.now()) + datetime.timedelta(days=-1)).strftime("%Y%m%d")
+    list2 = []
+    list1 = job_info['para_info'].split(",")
+    for line in list1:
+        if line == 'i_data_date':
+            list2.append(now_date_time)
+        else:
+            list2.append(line)
+            all_done_SP_list.append(line)
+    # 凑一下参数
+    list2.append('ppppppppppppppppppppppppppppppppp')
+    list2.append('ppppppppppppppppppppppppppppppppp')
+
+
+    # #无依赖存储过程
+    if job_info['prejob_id'] == None:
+        # 调用存储过程
+        call_storedprodure_obj = Call_StoredProcedure_Class(223)
+        try:
+            res = call_storedprodure_obj.Call_StoredProcedure(job_info['storeprodure_name'], list2)
+            print(res)
+            done_SP_list.append(res[1])
+        except Exception as e:
+            print("调用存储过程出错！！！", job_info['storeprodure_name'])
+            sys.exit(2)
+
+    else: ##有依赖的
+        while True:
+            time.sleep(2)
+            #满足依赖
+            prejob_info = job_info['prejob_id']
+            prejob_info_list = prejob_info.split(',')
+
+            # print('依赖', prejob_info_list, done_SP_list)
+
+            call_flag = True
+            for l1 in prejob_info_list:
+                if l1 in done_SP_list:
+                    pass
+                else:
+                    call_flag = False
+
+            if call_flag:
+                # print('满足依赖', job_info)
+                call_storedprodure_obj = Call_StoredProcedure_Class(223)
+                try:
+                    res = call_storedprodure_obj.Call_StoredProcedure(job_info['storeprodure_name'], list2)
+                    print(res)
+                    done_SP_list.append(res[1])
+                    break
+                except Exception as e:
+                    print("调用存储过程出错！！！", job_info['storeprodure_name'])
+                    sys.exit(2)
+            else:
+                # print('等待调度', job_info)
+                time.sleep(2)
+                # print('now status', prejob_info_list, 'all :::', all_done_SP_list)
+
 #主程序
 def main_func():
-    # task_group_dict = get_config_json()
-    # print(task_group_dict)
-    task_group_dict = {1: {'001': ['07:30', '08:30'], '002': ['1', '3', '5'], '003': []}, 2: {'001': ['09:00', '07:00', '06:00'], '002': ['6', '7', '8']}}
-    judge_the_task_group_run_func(task_group_dict)
 
-#程序入口
-main_func()
+    #取配置文件
+    task_group_dict = get_config_json()
 
+    # task_group_dict = {1: {'001': ['07:30', '08:30'], '002': ['1', '3', '5'], '003': []}, 2: {'001': ['09:00', '07:00', '06:00'], '002': ['6', '7', '8']}}
+    #判断当前时间是否到了，到了就把相关的任务信息传出来
+    will_start_task_group_dict = judge_the_task_group_run_func(task_group_dict)
+    # print(start_task_job)
+
+    #执行调用存储过程
+    start_the_task_group_run_func(will_start_task_group_dict)
+
+
+# # 程序入口
+# if __name__ == '__main__':
+#     main_func()
+if __name__ == '__main__':
+    daemon = Daemon('/var/run/call_SP.pid', stdout='/var/log/call_SP_stdout.log', stderr="/var/log/call_SP_stderr.log")
+    if len(sys.argv) == 2:
+        if 'start' == sys.argv[1]:
+            daemon.start()
+        elif 'stop' == sys.argv[1]:
+            daemon.stop()
+        elif 'restart' == sys.argv[1]:
+            daemon.restart()
+        else:
+            print('unknown command')
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print('usage: %s start|stop|restart' % sys.argv[0])
+        sys.exit(2)
