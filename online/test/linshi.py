@@ -63,7 +63,7 @@ aa = \
 
 
 # 守护进程包裹类
-class Daemon:
+class Daemon(object):
     def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
         # 需要获取调试信息，改为stdin='/dev/stdin', stdout='/dev/stdout', stderr='/dev/stderr'，以root身份运行。
         self.stdin = stdin
@@ -177,7 +177,14 @@ class oracle_run_sql_class(object):
         if oracle_DB == 223:
             self.oracle_DB = "dw/dw@10.138.22.223:1521/edw"
         elif oracle_DB == 226:
-            self.oracle_DB = "etl/etl_Haier@10.138.22.226:1521/edw"
+            self.oracle_DB = "etl/etl_ff@10.138.22.226:1521/edw"
+
+    def get_user_passwd(self, oracle_DB):
+        if oracle_DB == 223:
+            self.oracle_DB = "etl/etl@10.138.22.223:1521/edw"
+        elif oracle_DB == 226:
+            self.oracle_DB = "etl/etl_ffr@10.138.22.226:1521/edw"
+        return self.oracle_DB
 
     # 查询标识表方法
     def search_sql_func(self, search_sql):
@@ -219,21 +226,15 @@ def foo(func):
         cost_time = round(cost_time / 60, 2)
         print(cost_time)
         return ret
-
     return _deco
 
 class Call_StoredProcedure_Class(object):
     def __init__(self, Server_host):
-
-        # 返回值必须是这样的，这里写成了全局变量
-        global func_return_code, func_return_message
-        func_return_code = ''
-        func_return_message = '1234567890123456789012345'
         self.Server_host = Server_host
         if Server_host == 223:
-            self.Server_host_id = 'etl/etl@10.138.22.223:1521/edw'
+            self.Server_host_id = oracle_run_sql_class.get_user_passwd(oracle_run_sql_class, 223)
         elif Server_host == 226:
-            self.Server_host_id = 'wsd/wsd@10.138.22.226:1521/edw'
+            self.Server_host_id = oracle_run_sql_class.get_user_passwd(oracle_run_sql_class, 223)
 
     @foo
     def Before_Call_StoredProcedure(self, StoredProcedure_Name_list):
@@ -256,7 +257,6 @@ def get_config_json():
     result = task_obj.search_sql_func(search_sql)
     for i in result:
         task_group_list.append(i[0])
-
     task_group_dict = search_task_group_type_and_detail_func(task_group_list)
     return task_group_dict
 
@@ -275,8 +275,6 @@ def search_task_group_type_and_detail_func(task_group_list):
                 kk = str(line2[line])
                 task_group_dict[task_group_id][kk] = []
 
-        # print(task_group_dict[task_group_id].keys())
-
         for task_type in task_group_dict[task_group_id].keys():
             #001在这里代表 任务类型为每天调用 ，这里找出 任务类型为每天调用 的具体时间
             #具体到 配置表 duration = 001 时 去查询 run_time 字段
@@ -289,7 +287,6 @@ def search_task_group_type_and_detail_func(task_group_list):
                     kk = line2[line]
                     if kk:
                         task_group_dict[task_group_id][task_type].append(kk)
-
     return task_group_dict
 
 ##判断作业组是否应该执行（是否到点了）
@@ -301,12 +298,11 @@ def judge_the_task_group_run_func(task_group_dict):
     will_start_task_group_dict['task_group_id'] = {}
 
     # print(task_group_dict)
-
     now_date_time = (datetime.datetime.now()).strftime("%H:%S")
     now_date_time = "%2s" % (now_date_time)
 
-    #循环作业组
 
+    #循环作业组
     for task_group_id in task_group_dict.keys():
         will_start_task_group_dict['task_group_id'][task_group_id] = {}
         will_start_task_group_dict['task_group_id'][task_group_id]['job_id'] = {}
@@ -340,13 +336,11 @@ def judge_the_task_group_run_func(task_group_dict):
                                 will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][job_id[0]]['prejob_id'] = i[2]
                                 will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][job_id[0]]['run_time'] = run_time
 
-    #如果可以调用的化
+    # 如果可以调用的化
     if will_start_task_group_flag:
         now_date = (datetime.datetime.now()).strftime("%Y%m%d")
-
         #运行状态
         running_flag = True
-
         if not os.path.isfile(status_file_name):
             f = open(status_file_name, 'a')
             f.close()
@@ -371,14 +365,11 @@ def judge_the_task_group_run_func(task_group_dict):
             for line in file_list:
                 line = line.strip()
                 line_list = line.split(' ')
-
                 if line_list[0] == now_date and now_date_time == line_list[1] and line_list[2] == 'R':
                     print(now_date, now_date_time, 'running, will exit!')
                     running_flag = False
                     break
             f.close()
-
-
 
         if running_flag:
             print(now_date, now_date_time, "run......")
@@ -388,7 +379,6 @@ def judge_the_task_group_run_func(task_group_dict):
             print(now_date, now_date_time, "R", '已经写入')
             f.close()
             start_the_task_group_run_func(will_start_task_group_dict)
-
     else:
         print("没到指定的时间", now_date_time)
 
@@ -402,23 +392,18 @@ def start_the_task_group_run_func(will_start_task_group_dict):
     now_date = (datetime.datetime.now()).strftime("%Y%m%d")
     # 查询 多少个作业组 就起多少个子进程
     pool = multiprocessing.Pool(len(will_start_task_group_dict['task_group_id']))
-
     # 查询 多少个作业组 就起多少个子进程
     for task_group_id in range(1, (len(will_start_task_group_dict['task_group_id'])) + 1):
         pool.apply_async(_start_the_task_group_run_func, args=(will_start_task_group_dict['task_group_id'][task_group_id], task_group_id))
-
     pool.close()
     pool.join()
 
     run_time = will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][1]['run_time']
-
     f = open(status_file_name, 'r+')
     file_list = f.readlines()
     f.close()
 
-
     #改状态
-
     for line in file_list:
         line2 = line.strip()
         line_list = line2.split(' ')
@@ -437,6 +422,25 @@ def start_the_task_group_run_func(will_start_task_group_dict):
 
 ##作业组执行程序 2.2 作业组并发多线程
 def _start_the_task_group_run_func(job_id_dict, task_group_id):
+    search_sql_obj = oracle_run_sql_class(223)
+    search_sql = "select other_select_sql from t_Jobs_order where group_id = '%s' and job_id = 1" % (task_group_id)
+    res = search_sql_obj.search_sql_func(search_sql)
+
+    ##外部依赖
+    pre_other_job_info = res[0][0]
+    if pre_other_job_info == None:
+        print(task_group_id, "no pre for other")
+        pass
+    else:
+        search_sql_obj = oracle_run_sql_class(223)
+        res = search_sql_obj.search_sql_func(pre_other_job_info)
+        print('外部依赖作业情况', res[0][0])
+        pre_other_job_flag = res[0][0]
+
+        if pre_other_job_flag == 1:
+            print("外部依赖作业未完成,exit!")
+            sys.exit(0)
+
     # 定义线程池
     thread_list = []
 
@@ -471,7 +475,7 @@ def _start_the_task_group_run_func(job_id_dict, task_group_id):
 ##作业组执行程序 2.3 作业组并发多线程
 def __start_the_task_group_run_func(job_info, task_group_id, job_id):
     now_date_time = ((datetime.datetime.now()) + datetime.timedelta(days=-1)).strftime("%Y%m%d")
-    start_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%S")
+    start_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%M:%S")
 
     ###对存储过程的传入参数进行整合
     ##存储过程 配置表存的参数
@@ -488,29 +492,27 @@ def __start_the_task_group_run_func(job_info, task_group_id, job_id):
     SP_para_info.append('ppppppppppppppppppppppppppppppppp')
     SP_para_info.append('ppppppppppppppppppppppppppppppppp')
 
-
     # #无依赖存储过程
     if job_info['prejob_id'] == None:
         # 调用存储过程
-        call_storedprodure_obj = Call_StoredProcedure_Class(223)
-        try:
 
+        try:
             #顺序表
             done_SP_list.append(job_id)
-
+            call_storedprodure_obj = Call_StoredProcedure_Class(223)
             res = call_storedprodure_obj.Call_StoredProcedure(job_info['storeprodure_name'], SP_para_info)
             print('group_id:', task_group_id, 'job_id:', job_id, res)
             done_SP_set.add(job_id)
 
-
             ##写入日志
-            # run_status = 'D'
-            # end_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%S")
-            # insert_sql = "insert into t_jobs_logs(DATA_DAY,GROUP_ID,JOB_ID,PRO_NAME,RUN_START_TIME,RUN_END_TIME,RUN_STATUS,RUN_TIME) values(to_date('%s','yyyymmdd'),%d,%d,'%s',to_date('%s','yyyymmdd hh24:mi'),to_date('%s','yyyymmdd hh24:mi'),'%s','%s')" % (now_date_time, task_group_id, job_id, job_info['storeprodure_name'], start_time, end_time, run_status, job_info['run_time'])
-            # sql_obj = oracle_run_sql_class(223)
-            # sql_obj.insert_into_sql_common_func(insert_sql)
+            run_status = 'D'
+            end_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%M:%S")
+            insert_sql = "insert into t_jobs_logs(DATA_DAY,GROUP_ID,JOB_ID,PRO_NAME,RUN_START_TIME,RUN_END_TIME,RUN_STATUS,RUN_TIME) values('%s', %d, %d, '%s', to_date('%s','yyyymmdd hh24:mi:SS'), to_date('%s','yyyymmdd hh24:mi:SS'),'%s','%s')" % (now_date_time, task_group_id, job_id, job_info['storeprodure_name'], start_time, end_time, run_status, job_info['run_time'])
+            sql_obj = oracle_run_sql_class(223)
+            sql_obj.insert_into_sql_common_func(insert_sql)
 
         except Exception as e:
+            print(e)
             print("调用存储过程出错！！！", job_info['storeprodure_name'], 'job_id是：', job_id)
             sys.exit(2)
 
@@ -530,7 +532,6 @@ def __start_the_task_group_run_func(job_info, task_group_id, job_id):
             if call_flag:
                 # 顺序表
                 done_SP_list.append(job_id)
-
                 call_storedprodure_obj = Call_StoredProcedure_Class(223)
                 try:
                     res = call_storedprodure_obj.Call_StoredProcedure(job_info['storeprodure_name'], SP_para_info)
@@ -538,11 +539,13 @@ def __start_the_task_group_run_func(job_info, task_group_id, job_id):
                     done_SP_set.add(job_id)
 
                     ##写入日志
-                    # end_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%S")
-                    # run_status = 'D'
-                    # insert_sql = "insert into t_jobs_logs(DATA_DAY,GROUP_ID,JOB_ID,PRO_NAME,RUN_START_TIME,RUN_END_TIME,RUN_STATUS,RUN_TIME) values(to_date(%s,'yyyymmdd'),%d,%d,'%s',to_date(%s,'yyyymmdd hh24:mi'),to_date(%s,'yyyymmdd hh24:mi'),%s,%s) % (now_date_time, task_group_id, job_id, job_info['storeprodure_name'], start_time, end_time, run_status,job_info['run_time'])"
-                    # sql_obj = oracle_run_sql_class(223)
-                    # sql_obj.insert_into_sql_common_func(insert_sql)
+                    end_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%M:%S")
+                    run_status = 'D'
+                    insert_sql = "insert into t_jobs_logs(DATA_DAY,GROUP_ID,JOB_ID,PRO_NAME,RUN_START_TIME,RUN_END_TIME,RUN_STATUS,RUN_TIME) values('%s',%d,%d,'%s',to_date('%s','yyyymmdd hh24:mi:SS'),to_date('%s','yyyymmdd hh24:mi:SS'),'%s','%s')" % (
+                    now_date_time, task_group_id, job_id, job_info['storeprodure_name'], start_time, end_time,
+                    run_status, job_info['run_time'])
+                    sql_obj = oracle_run_sql_class(223)
+                    sql_obj.insert_into_sql_common_func(insert_sql)
                     break
                 except Exception as e:
                     print(e)
@@ -550,26 +553,21 @@ def __start_the_task_group_run_func(job_info, task_group_id, job_id):
                     sys.exit(2)
             else:
                 # print('下一个循环。。。')
-                time.sleep(1)
+                time.sleep(3)
                 print('group_id:', task_group_id, 'job_id:', job_id, '等待调度.........')
-
 
 #主程序
 def main_func():
-
     #取配置文件
     task_group_dict = get_config_json()
-    # print(task_group_dict)
 
     #判断当前时间是否到了，到了就可以调用
     judge_the_task_group_run_func(task_group_dict)
 
-
-
 if __name__ == '__main__':
     main_func()
     status_file_name = 'status.txt'
-
+#
 # if __name__ == '__main__':
 #     global status_file_name
 #     status_file_name = '/root/yunwei/test/call_SP_test/status.txt'
