@@ -175,13 +175,16 @@ class oracle_run_sql_class(object):
     def __init__(self, oracle_DB):
         self.oracle_DB = oracle_DB
         if oracle_DB == 223:
-            self.oracle_DB = "dw/dw@10.138.22.223:1521/edw"
-        elif oracle_DB == 226:
-            self.oracle_DB = "etl/etl_Haier@10.138.22.226:1521/edw"
-        elif oracle_DB == 'DW223':
-            self.oracle_DB = "dw/dw@10.138.22.223:1521/edw"
-        elif oracle_DB == 'WSD223':
-            self.oracle_DB = "dw/dw@10.138.22.223:1521/edw"
+            self.oracle_DB = "etc/etc@10.138.22.223:1521/edw"
+        # elif oracle_DB == 226:
+        #     self.oracle_DB = "etl/etl_ff@10.138.22.226:1521/edw"
+
+    def get_user_passwd(self, oracle_DB):
+        if oracle_DB == 223:
+            self.oracle_DB = "etc/etc@10.138.22.223:1521/edw"
+        # elif oracle_DB == 226:
+        #     self.oracle_DB = "etl/etl_ffr@10.138.22.226:1521/edw"
+        return self.oracle_DB
 
     # 查询标识表方法
     def search_sql_func(self, search_sql):
@@ -227,16 +230,11 @@ def foo(func):
 
 class Call_StoredProcedure_Class(object):
     def __init__(self, Server_host):
-
-        # 返回值必须是这样的，这里写成了全局变量
-        global func_return_code, func_return_message
-        func_return_code = ''
-        func_return_message = '1234567890123456789012345'
         self.Server_host = Server_host
         if Server_host == 223:
-            self.Server_host_id = 'etl/etl@10.138.22.223:1521/edw'
+            self.Server_host_id = oracle_run_sql_class.get_user_passwd(oracle_run_sql_class, 223)
         elif Server_host == 226:
-            self.Server_host_id = 'wsd/wsd@10.138.22.226:1521/edw'
+            self.Server_host_id = oracle_run_sql_class.get_user_passwd(oracle_run_sql_class, 223)
 
     @foo
     def Before_Call_StoredProcedure(self, StoredProcedure_Name_list):
@@ -293,7 +291,6 @@ def search_task_group_type_and_detail_func(task_group_list):
 
 ##判断作业组是否应该执行（是否到点了）
 def judge_the_task_group_run_func(task_group_dict):
-    status_file_name = 'status.txt'
     #甩出来一个即将执行的任务字典
     will_start_task_group_flag = False
     will_start_task_group_dict = {}
@@ -390,7 +387,7 @@ def empty_status_file_func():
 
 ##作业组执行程序 2.1 开始多进程
 def start_the_task_group_run_func(will_start_task_group_dict):
-    status_file_name = 'status.txt'
+
     now_date = (datetime.datetime.now()).strftime("%Y%m%d")
     # 查询 多少个作业组 就起多少个子进程
     pool = multiprocessing.Pool(len(will_start_task_group_dict['task_group_id']))
@@ -400,7 +397,7 @@ def start_the_task_group_run_func(will_start_task_group_dict):
     pool.close()
     pool.join()
 
-    run_time = will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][1]['run_time']
+    run_time = will_start_task_group_dict['task_group_id'][1]['job_id'][1]['run_time']
     f = open(status_file_name, 'r+')
     file_list = f.readlines()
     f.close()
@@ -497,11 +494,11 @@ def __start_the_task_group_run_func(job_info, task_group_id, job_id):
     # #无依赖存储过程
     if job_info['prejob_id'] == None:
         # 调用存储过程
-        call_storedprodure_obj = Call_StoredProcedure_Class(223)
+
         try:
             #顺序表
             done_SP_list.append(job_id)
-
+            call_storedprodure_obj = Call_StoredProcedure_Class(223)
             res = call_storedprodure_obj.Call_StoredProcedure(job_info['storeprodure_name'], SP_para_info)
             print('group_id:', task_group_id, 'job_id:', job_id, res)
             done_SP_set.add(job_id)
@@ -509,7 +506,9 @@ def __start_the_task_group_run_func(job_info, task_group_id, job_id):
             ##写入日志
             run_status = 'D'
             end_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%M:%S")
-            insert_sql = "insert into t_jobs_logs(DATA_DAY,GROUP_ID,JOB_ID,PRO_NAME,RUN_START_TIME,RUN_END_TIME,RUN_STATUS,RUN_TIME) values('%s', %d, %d, '%s', to_date('%s','yyyymmdd hh24:mi:SS'), to_date('%s','yyyymmdd hh24:mi:SS'),'%s','%s')" % (now_date_time, task_group_id, job_id, job_info['storeprodure_name'], start_time, end_time, run_status, job_info['run_time'])
+            insert_sql = "insert into t_jobs_logs(DATA_DAY,GROUP_ID,JOB_ID,PRO_NAME,RUN_START_TIME,RUN_END_TIME,RUN_STATUS,RUN_TIME) values('%s', %d, %d, '%s', to_date('%s','yyyymmdd hh24:mi:SS'), to_date('%s','yyyymmdd hh24:mi:SS'),'%s','%s')" % (
+                now_date_time, task_group_id, job_id, job_info['storeprodure_name'], start_time, end_time, run_status, job_info['run_time']
+            )
             sql_obj = oracle_run_sql_class(223)
             sql_obj.insert_into_sql_common_func(insert_sql)
 
@@ -569,11 +568,11 @@ def main_func():
 if __name__ == '__main__':
     main_func()
     status_file_name = 'status.txt'
-#
+
 # if __name__ == '__main__':
 #     global status_file_name
 #     status_file_name = '/root/yunwei/test/call_SP_test/status.txt'
-#     daemon = Daemon('/var/run/call_SP2.pid', stdout='/var/log/call_SP_stdout2.log', stderr="/var/log/call_SP_stderr2.log")
+#     daemon = Daemon('/var/run/call_SP1.pid', stdout='/var/log/call_SP_stdout1.log', stderr="/var/log/call_SP_stderr1.log")
 #     if len(sys.argv) == 2:
 #         if 'start' == sys.argv[1]:
 #             daemon.start()

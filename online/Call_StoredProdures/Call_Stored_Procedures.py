@@ -3,9 +3,6 @@ import datetime, time
 import sys
 import calendar
 
-
-
-
 def foo(func):
     def _deco(arg1, arg2):
         start_time = time.time()
@@ -30,15 +27,13 @@ class Call_StoredProcedure_Class(object):
         elif Server_host == 226:
             self.Server_host_id = 'wsd/wsd@10.138.22.226:1521/edw'
 
-    @foo
     def EveryDay_Task_Func(self, *StoredProcedures_Name):
         day_now_datetime_str = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime("%Y%m%d")
-
         for SP_name in StoredProcedures_Name:
-            print(SP_name)
             self.Call_StoredProcedure(SP_name, day_now_datetime_str)
 
-
+    def check_before_task_flag_func(self):
+        pass
 
     #大屏 每日 调度动作
     def Maual_Task_Func(self, day_begin_string, day_end_string, *StoredProcedure_Name):
@@ -69,12 +64,12 @@ class Call_StoredProcedure_Class(object):
     #调取存储过程代码
     def Call_StoredProcedure(self, StoredProcedure_Name, data_date):
         print("正在调用 存储过程[%s] 日期[%s] ..." % (StoredProcedure_Name, data_date))
-        conn = cx_Oracle.connect(self.Server_host_id)
-        cur = conn.cursor()
-        res = cur.callproc(StoredProcedure_Name, [data_date, func_return_code, func_return_message])
-        print(res, "\n")
-        cur.close()
-        conn.close()
+        # conn = cx_Oracle.connect(self.Server_host_id)
+        # cur = conn.cursor()
+        # res = cur.callproc(StoredProcedure_Name, [data_date, func_return_code, func_return_message])
+        # print(res, "\n")
+        # cur.close()
+        # conn.close()
 
     #大屏 18:00 特殊调度动作
     def _daping_special(self):
@@ -104,10 +99,11 @@ class Call_StoredProcedure_Class(object):
             data_date_tmp = data_date_tmp + delta
 
 
+
+
 if __name__ == '__main__':
-    daping = Call_StoredProcedure_Class(226)
-    print(sys.argv)
-    daping.Maual_Task_Func(sys.argv[1], sys.argv[2], 'WSD.pack_fin_income_margin.proc_all')
+    duigong = Call_StoredProcedure_Class(226)
+    duigong.EveryDay_Task_Func('dw.pack_dw_all_new_ETL.pack_dw_all_new_FL', 'dw.pack_dw_all_new_ETL.pack_dw_all_new_ML', 'dw.pack_dw_all_new_ETL.pack_dw_all_new_FT', 'dw.pack_dw_all_new_ETL.pack_dw_all_new_EDWPDC')
 
     '''使用方法，如对公项目
         第一种：每日调度 T-1 昨日数据，生产库调度

@@ -82,5 +82,8 @@ class Call_StoredProcedure_Class(object):
 
 
 if __name__ == '__main__':
-    duigong = Call_StoredProcedure_Class(223)
-    duigong.EveryDay_Task_Main_Func('20170101', '20170103', "WSD.pack_wide_screen_display.proc_all")
+    if len(sys.argv) != 4:
+        print('参数不对')
+        exit()
+    duigong = Call_StoredProcedure_Class(226)
+    duigong.EveryDay_Task_Main_Func(sys.argv[1], sys.argv[2], sys.argv[3])

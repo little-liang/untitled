@@ -39,7 +39,7 @@ re_result = re.match(pattern, ori_data)
 
 
 #3.1.1这里已经拆到最后的一个括号了，换句话说只有括号里的了
-ori_data = "(-4*3*4)"
+ori_data = "(155-48*39*4+69-955/32/18*69-65-71+6*8-7/9)"
 # print(ori_data)
 pattern1 = re.compile(r'\(')
 pattern2 = re.compile(r'\)')
@@ -55,24 +55,51 @@ if left_num == right_num and len(left_num) == 1 and len(right_num) == 1:
     # print(ori_data)
     pattern = re.compile(r'\(|\)')
     re_result = re.sub(pattern, "", ori_data)
-    print(re_result)
+    print('去掉括号后：', re_result)
 
 #取出运算符
-operation_symbol = re.search("\/|\*", re_result)
-if re_result:
-    print("运算符号为：", operation_symbol.group())
+## 开头是减号的,去掉减号
+start_char = False
+pattern = re.compile(r"^\-")
+if re.match(pattern, re_result):
+    start_char = True
+    re_result = re.sub(pattern, "", re_result)
 
-#取出运算符两边的数字，计算
-pattern = r'\*|\/'
-re_result = re.split("\*|\/", re_result)
-print("取出运算符两边的数字", re_result)
 
-total = 1
-if operation_symbol.group() == '*':
-    for line in re_result:
-        total = total * float(line)
+print(re_result)
 
-    print("暂时的结果为", total)
+#这里加减乘除 怎么搞,思想 找出两个来，算出来 替换掉，再找 再替换
+
+pattern1 = re.compile(r'\d+[/*]\d+')
+matcher1 = re.findall(pattern1, re_result)
+print (matcher1)
+
+aa_list = []
+for line in matcher1:
+    aa = re.split(r'\*|\/', line)
+    aa_pp = re.search(r'[/*]', line)
+    total = 1
+    if aa_pp.group()[0] == "*":
+        for line2 in aa:
+            total = total * int(line2)
+        aa_list.append(total)
+    if aa_pp.group()[0] == "/":
+        for line2 in aa:
+            total = total / int(line2)
+        aa_list.append(total)
+
+print(aa_list)
+print(aa_list[0])
+
+##这边要用个递归了把
+print("jjjjjjjjjjjjjjjjjjjjjj")
+for index, line in enumerate(matcher1):
+    print(line, type(index))
+    line_p = re.escape(line)
+    print(aa_list[index])
+    kk = re.sub(line_p, str(aa_list[index]), re_result)
+    print(kk)
+#############
 
 
 # def liukuohao(user_input):

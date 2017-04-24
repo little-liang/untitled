@@ -175,15 +175,15 @@ class oracle_run_sql_class(object):
     def __init__(self, oracle_DB):
         self.oracle_DB = oracle_DB
         if oracle_DB == 223:
-            self.oracle_DB = "dw/dw@10.138.22.223:1521/edw"
-        elif oracle_DB == 226:
-            self.oracle_DB = "etl/etl_ff@10.138.22.226:1521/edw"
+            self.oracle_DB = "etc/etc@10.138.22.223:1521/edw"
+        # elif oracle_DB == 226:
+        #     self.oracle_DB = "etl/etl_ff@10.138.22.226:1521/edw"
 
     def get_user_passwd(self, oracle_DB):
         if oracle_DB == 223:
-            self.oracle_DB = "etl/etl@10.138.22.223:1521/edw"
-        elif oracle_DB == 226:
-            self.oracle_DB = "etl/etl_ffr@10.138.22.226:1521/edw"
+            self.oracle_DB = "etc/etc@10.138.22.223:1521/edw"
+        # elif oracle_DB == 226:
+        #     self.oracle_DB = "etl/etl_ffr@10.138.22.226:1521/edw"
         return self.oracle_DB
 
     # 查询标识表方法
@@ -291,7 +291,6 @@ def search_task_group_type_and_detail_func(task_group_list):
 
 ##判断作业组是否应该执行（是否到点了）
 def judge_the_task_group_run_func(task_group_dict):
-    status_file_name = 'status.txt'
     #甩出来一个即将执行的任务字典
     will_start_task_group_flag = False
     will_start_task_group_dict = {}
@@ -388,7 +387,7 @@ def empty_status_file_func():
 
 ##作业组执行程序 2.1 开始多进程
 def start_the_task_group_run_func(will_start_task_group_dict):
-    status_file_name = 'status.txt'
+
     now_date = (datetime.datetime.now()).strftime("%Y%m%d")
     # 查询 多少个作业组 就起多少个子进程
     pool = multiprocessing.Pool(len(will_start_task_group_dict['task_group_id']))
@@ -398,7 +397,7 @@ def start_the_task_group_run_func(will_start_task_group_dict):
     pool.close()
     pool.join()
 
-    run_time = will_start_task_group_dict['task_group_id'][task_group_id]['job_id'][1]['run_time']
+    run_time = will_start_task_group_dict['task_group_id'][1]['job_id'][1]['run_time']
     f = open(status_file_name, 'r+')
     file_list = f.readlines()
     f.close()
@@ -564,25 +563,25 @@ def main_func():
     #判断当前时间是否到了，到了就可以调用
     judge_the_task_group_run_func(task_group_dict)
 
-if __name__ == '__main__':
-    main_func()
-    status_file_name = 'status.txt'
-#
 # if __name__ == '__main__':
-#     global status_file_name
-#     status_file_name = '/root/yunwei/test/call_SP_test/status.txt'
-#     daemon = Daemon('/var/run/call_SP2.pid', stdout='/var/log/call_SP_stdout2.log', stderr="/var/log/call_SP_stderr2.log")
-#     if len(sys.argv) == 2:
-#         if 'start' == sys.argv[1]:
-#             daemon.start()
-#         elif 'stop' == sys.argv[1]:
-#             daemon.stop()
-#         elif 'restart' == sys.argv[1]:
-#             daemon.restart()
-#         else:
-#             print('unknown command')
-#             sys.exit(2)
-#         sys.exit(0)
-#     else:
-#         print('usage: %s start|stop|restart' % sys.argv[0])
-#         sys.exit(2)
+#     main_func()
+#     status_file_name = 'status.txt'
+
+if __name__ == '__main__':
+    global status_file_name
+    status_file_name = '/root/yunwei/test/call_SP_test/status.txt'
+    daemon = Daemon('/var/run/call_SP1.pid', stdout='/var/log/call_SP_stdout1.log', stderr="/var/log/call_SP_stderr1.log")
+    if len(sys.argv) == 2:
+        if 'start' == sys.argv[1]:
+            daemon.start()
+        elif 'stop' == sys.argv[1]:
+            daemon.stop()
+        elif 'restart' == sys.argv[1]:
+            daemon.restart()
+        else:
+            print('unknown command')
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print('usage: %s start|stop|restart' % sys.argv[0])
+        sys.exit(2)
