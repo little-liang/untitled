@@ -274,11 +274,11 @@ def _check_TaskGroup_RunTime_func(task_group_id, call_type_info):
             if now_date_time == run_time:
                 # print(task_group_id, call_type_id, run_time)
                 #done?
-                now_done_statu = check_TaskGroup_RunStatusDone_func(task_group_id, run_time)
+                now_done_statu = check_TaskGroup_RunStatusDone_func(task_group_id, run_time, now_date)
 
                 #running?
                 if not now_done_statu:
-                    now_run_statu = check_TaskGroup_RunStatusRunning_func(task_group_id, run_time)
+                    now_run_statu = check_TaskGroup_RunStatusRunning_func(task_group_id, run_time, now_date)
 
                 ## will run..
                 if not now_done_statu and not now_run_statu:
@@ -290,6 +290,7 @@ def _check_TaskGroup_RunTime_func(task_group_id, call_type_info):
 
 
                     # wirte_running_flag
+                    time.sleep(1)
                     with open(status_file_name, 'r+') as f:
                         wirte_running_flag = True
                         for line in f:
@@ -299,6 +300,7 @@ def _check_TaskGroup_RunTime_func(task_group_id, call_type_info):
                                 2] == run_time and line_list[3] == 'R':
                                 wirte_running_flag = False
                         if wirte_running_flag:
+                            print(task_group_id, now_date, run_time, 'R', '写入标识')
                             print(task_group_id, now_date, run_time, 'R', file=f)
 
                     ##调用另一个跑批脚本
@@ -309,11 +311,8 @@ def _check_TaskGroup_RunTime_func(task_group_id, call_type_info):
 
 
 ##检测调度运行完毕
-def check_TaskGroup_RunStatusDone_func(task_group_id, run_time):
+def check_TaskGroup_RunStatusDone_func(task_group_id, run_time, now_date):
     status_file_name = 'status.txt'
-    now_date = (datetime.datetime.now()).strftime("%Y%m%d")
-    now_date_time = (datetime.datetime.now()).strftime("%H:%M")
-
     now_done_statu = False
     ##done?
     with open(status_file_name, 'r') as f:
@@ -327,13 +326,11 @@ def check_TaskGroup_RunStatusDone_func(task_group_id, run_time):
                 return now_done_statu
     return now_done_statu
 
-##检测调度运行真正运行
-def check_TaskGroup_RunStatusRunning_func(task_group_id, run_time):
+##检测调度运行zhengzai运行
+def check_TaskGroup_RunStatusRunning_func(task_group_id, run_time, now_date):
     status_file_name = 'status.txt'
-    now_date = (datetime.datetime.now()).strftime("%Y%m%d")
-    now_date_time = (datetime.datetime.now()).strftime("%H:%M")
-    now_run_statu = False
 
+    now_run_statu = False
     ##done?
     with open(status_file_name, 'r') as f:
         for line in f:
@@ -352,8 +349,8 @@ def check_TaskGroup_RunStatusRunning_func(task_group_id, run_time):
 #主程序
 def main_func():
     #取配置文件
-    db223_config = Get_Config_Json_Class(223)
-    task_time_config_dict = db223_config.get_task_time_config_func()
+    db226_config = Get_Config_Json_Class(226)
+    task_time_config_dict = db226_config.get_task_time_config_func()
 
     check_TaskGroup_RunTime_func(task_time_config_dict)
 

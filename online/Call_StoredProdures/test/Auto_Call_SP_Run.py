@@ -49,6 +49,18 @@ class oracle_run_sql_class(object):
             print(e)
             print("Oracle connect is broken!!!")
 
+    # 删除通用版本
+    def delete_sql_common_func(self, delete_sql):
+        try:
+            conn = cx_Oracle.connect(self.which_db)
+            cur = conn.cursor()
+            cur.execute(delete_sql)
+            conn.commit()
+            conn.close()
+        except BaseException as e:
+            print(e)
+            print("delete Oracle connect is broken!!!")
+
 
 # 调用存储过程类
 class Call_StoredProcedure_Class(object):
@@ -64,9 +76,9 @@ class Call_StoredProcedure_Class(object):
         conn = cx_Oracle.connect(self.which_db)
         cur = conn.cursor()
         res = cur.callproc(StoredProcedure_Name, para_list)
-        print(res)
         cur.close()
         conn.close()
+        print(res)
         return res
 
 
@@ -164,8 +176,8 @@ class Get_Config_Json_Class(object):
 
 # 检查call_type的类型接口
 def check_task_call_type(will_call_task_group_dict):
-    db223_config = Get_Config_Json_Class(223)
-    task_group_info_dict = db223_config.get_task_group_info_dict()
+    db226_config = Get_Config_Json_Class(226)
+    task_group_info_dict = db226_config.get_task_group_info_dict()
     task_group_info_dict['task_group_id'][will_call_task_group_dict['task_group_id']]['data_date'] = \
         will_call_task_group_dict['now_date']
 
@@ -183,14 +195,84 @@ def check_task_call_type(will_call_task_group_dict):
 
 ##调度
 def call_SP(task_group_id, task_group_info_dict):
-    ##类型1
-    if task_group_info_dict['call_type_id'] == '1':
-        _call_SP_1(task_group_id, task_group_info_dict)
+    call_type = task_group_info_dict['call_type_id']
+
+    while True:
+        # 内部依赖， 返回可以调用的job_id
+        will_run_job_id_list = check_inside_job(task_group_info_dict)
+
+        # 开始调用
+        multi_call_SP(task_group_id, task_group_info_dict, will_run_job_id_list)
 
 
-def _call_SP_1(task_group_id, task_group_info_dict):
+        # 检查所有作业是否完成
+        all_done_status = check_all_job_done(task_group_id, task_group_info_dict)
+
+    #作业已经全部完成，检查类型，然后调用相关脚本
+
+        if all_done_status:
+            if call_type == '1':
+                cmd = "python3 /tmp/call_SP_1.py"
+                # subprocess.run(cmd)
+            elif call_type == '2':
+                cmd = "python3 /tmp/call_SP_1.py"
+                # subprocess.run(cmd)
+            else:
+                print("该类型不支持，请更新此处代码")
+
+            break
+        else:
+            pass
+
+        time.sleep(4)
+
+def check_inside_job(task_group_info_dict):
+    will_run_job_id_list = []
+
+    with lock:
+        for job_id in task_group_info_dict['job_id'].keys():
+
+            #job已经跑过了
+            if job_id in done_SP_set:
+                continue
+
+            prejob_info = task_group_info_dict['job_id'][job_id]['prejob_id']
+            prejob_info_list = prejob_info[0].split(",")
+
+            ##内部依赖满足就可以了
+            will_call_job_flag = True
+            for line in prejob_info_list:
+                if not line in done_SP_set:
+                    will_call_job_flag = False
+            if will_call_job_flag:
+                will_run_job_id_list.append(job_id)
+
+
+    print(will_run_job_id_list, '已以提交并发任务')
+    return will_run_job_id_list
+
+
+
+def multi_call_SP(task_group_id, task_group_info_dict, will_run_job_id_list):
+    thread_list = []
+
+    for job_id in will_run_job_id_list:
+        t = threading.Thread(target=call_SP_run, args=(
+            task_group_id, job_id, task_group_info_dict['job_id'][job_id]['storeprodure_name'],
+            task_group_info_dict)
+                             )
+        t.start()
+        thread_list.append(t)
+
+        # 等待线程运行完毕
+
+    for t in thread_list:
+        t.join()
+
+
+def outside_pree_job(task_group_id):
     # 1外部依赖
-    search_sql_obj = oracle_run_sql_class(223)
+    search_sql_obj = oracle_run_sql_class(226)
     search_sql = "select other_select_sql from t_Jobs_order where group_id = '%s' and job_id = 1" % (task_group_id)
     res = search_sql_obj.search_sql_func(search_sql)
 
@@ -199,7 +281,7 @@ def _call_SP_1(task_group_id, task_group_info_dict):
         print("作业组 %s 无 外部依赖" % (task_group_id))
         pass
     else:
-        search_sql_obj = oracle_run_sql_class(223)
+        search_sql_obj = oracle_run_sql_class(226)
         res = search_sql_obj.search_sql_func(pre_other_job_info)
         print('外部依赖作业情况', res[0][0])
         pre_other_job_flag = res[0][0]
@@ -208,74 +290,72 @@ def _call_SP_1(task_group_id, task_group_info_dict):
             print("外部依赖作业未完成,exit!")
             sys.exit(0)
 
-    # 优先级判断外部做不了现在直接并发，等待线程完成
-    for job_id in task_group_info_dict['job_id'].keys():
-        # 整理调用参数，最好写个接口
-        call_SP_para_list = []
-        # 参数 存储过程名
-        storeprodure_name = task_group_info_dict['job_id'][job_id]['storeprodure_name']
-        para_info_list = task_group_info_dict['job_id'][job_id]['para_info'].split(',')
 
-        # 调用参数 固定昨天
-        for line in para_info_list:
-            if line == 'i_data_date':
-                call_SP_para_list.append(task_group_info_dict['data_date'])
+def check_all_job_done(task_group_id, task_group_info_dict):
+    data_date = task_group_info_dict['data_date']
+    run_time = task_group_info_dict['run_time']
 
-        # 调用参数，固定返回参数
-        return_info = task_group_info_dict['job_id'][job_id]['return_info']
-        return_info_list = task_group_info_dict['job_id'][job_id]['return_info'].split(',')
+    if done_SP_set == all_done_SP_set:
+        print("作业组 %s 所有作业已经完成" % (task_group_id))
+        # 写入作业完成标识
+        wirte_running_flag(task_group_id, data_date, run_time)
+        print('作业顺序：', done_SP_list)
+        return True
 
-        for line in return_info_list:
-            if line == 'o_return_code':
-                # 默认填充参数
-                call_SP_para_list.append('0000000000000000000000000000000000000000000000')
-            elif line == 'o_return_message':
-                call_SP_para_list.append('0000000000000000000000000000000000000000000000')
-
-        # 得到最后调用参数
-        # print(call_SP_para_list, 'gffffffffff')
-
-        # 多线程并发
-        thread_list = []
-
-        t = threading.Thread(target=call_SP_run, args=(
-            task_group_id, job_id, task_group_info_dict['job_id'][job_id]['prejob_id'], storeprodure_name,
-            call_SP_para_list, task_group_info_dict))
-        t.start()
-        thread_list.append(t)
-
-        # 等待线程运行完毕
-    for t in thread_list:
-        t.join()
+    else:
+        no_done_job_id = all_done_SP_set - done_SP_set
+        print("作业组 [%s] 所有作业尚未完成 未完成任务 [%s]" % (task_group_id, no_done_job_id))
+        return False
 
 
 # 内部依赖 加 调用
-def call_SP_run(task_group_id, job_id, prejob_id, storeprodure_name, call_SP_para_list, task_group_info_dict):
-    status_file_name = 'status.txt'
+def call_SP_run(task_group_id, job_id, storeprodure_name, task_group_info_dict):
+    call_SP_para_list = check_para_info(task_group_id, job_id, task_group_info_dict)
     start_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%M:%S")
-    while True:
-        if str(prejob_id[0]) in done_SP_set:
-            call_SP_obj = Call_StoredProcedure_Class(223)
-            call_result = call_SP_obj.Call_StoredProcedure(storeprodure_name, call_SP_para_list)
-            print("作业组 [%s], 作业[%s], 已完成" % (task_group_id, job_id))
+    run_flag = True
+    data_date = task_group_info_dict['data_date']
+    run_time = task_group_info_dict['run_time']
+    try:
+        call_SP_obj = Call_StoredProcedure_Class(226)
+        call_result = call_SP_obj.Call_StoredProcedure(storeprodure_name, call_SP_para_list)
+        print("作业组 [%s], 作业[%s], 已完成" % (task_group_id, job_id))
 
-            # 单个job跑完就写入日志表
-            data_date = task_group_info_dict['data_date']
-            wirte_table_log(data_date, task_group_id, job_id, storeprodure_name, start_time,
-                            task_group_info_dict['run_time'])
-
-            # 全部完成,状态
-            lock.acquire()
+        # 写入标识，内部依赖使用的 完成job_id标识
+        with lock:
             done_SP_set.add(job_id)
-            if done_SP_set == all_done_SP_set:
-                print("作业组 [%s] 全部作业已经完成！" % (task_group_id))
-                # 写入状态文件
-                wirte_running_flag(task_group_id, task_group_info_dict['data_date'], task_group_info_dict['run_time'])
-            lock.release()
+            done_SP_list.append(job_id)
 
-            break
-        else:
-            time.sleep(1)
+    except Exception as e:
+        print(e)
+        run_flag = False
+
+    # 已经跑完了
+    if run_flag:
+        wirte_table_log(data_date, task_group_id, job_id, storeprodure_name, start_time, run_time)
+
+
+# 检查那个自定义参数
+def check_para_info(task_group_id, job_id, task_group_info_dict):
+
+    call_SP_para_list = []
+    data_date = task_group_info_dict['data_date']
+    para_info_list = task_group_info_dict['job_id'][job_id]['para_info'].split(',')
+    return_info_list = task_group_info_dict['job_id'][job_id]['return_info'].split(',')
+
+    for line in para_info_list:
+        if line == 'i_data_date':
+            call_SP_para_list.append(data_date)
+
+
+    for line in return_info_list:
+        if line == 'o_return_code':
+            call_SP_para_list.append('ppppppppppppppppppppppppppppppppppppppppppp')
+        elif line == 'o_return_message':
+            call_SP_para_list.append('ppppppppppppppppppppppppppppppppppppppppppp')
+
+
+    return call_SP_para_list
+
 
 
 def wirte_running_flag(task_group_id, data_date, run_time):
@@ -294,17 +374,26 @@ def wirte_running_flag(task_group_id, data_date, run_time):
             print(task_group_id, data_date, run_time, 'D', file=f)
             print(task_group_id, data_date, run_time, 'D', "状态(status.txt)标志已经更新")
 
+
 def wirte_table_log(data_date, task_group_id, job_id, storeprodure_name, start_time, run_time):
+    "写入当天日志"
     run_status = 'D'
     end_time = (datetime.datetime.now()).strftime("%Y%m%d %H:%M:%S")
     insert_sql = "insert into t_jobs_logs(DATA_DAY,GROUP_ID,JOB_ID,PRO_NAME,RUN_START_TIME,RUN_END_TIME,RUN_STATUS,RUN_TIME) values('%s', %d, %d, '%s', to_date('%s','yyyymmdd hh24:mi:SS'), to_date('%s','yyyymmdd hh24:mi:SS'),'%s','%s')" % \
                  (
-                     data_date, int(task_group_id), int(job_id), storeprodure_name, start_time, end_time, run_status, run_time
+                     data_date, int(task_group_id), int(job_id), storeprodure_name, start_time, end_time, run_status,
+                     run_time
                  )
-    insert_sql_obj = oracle_run_sql_class(223)
+
+    ###补充 删除 当天的 日志
+    delete_sql_obj = oracle_run_sql_class(226)
+    delete_sql = "delete from t_jobs_logs where DATA_DAY = '%s'" % (data_date)
+    delete_sql_obj.delete_sql_common_func(delete_sql)
+
+    insert_sql_obj = oracle_run_sql_class(226)
     insert_sql_obj.insert_into_sql_common_func(insert_sql)
 
-    print("作业组[%s] 作业[%s] 日期[%s] 时间[%s] 已经写入日志表" % (task_group_id, job_id, data_date, run_time))
+    print("作业组[%s] 作业[%s] 日期[%s] 时间[%s] 已经写入日志表\n" % (task_group_id, job_id, data_date, run_time))
 
 
 # 主程序
@@ -313,6 +402,10 @@ def main_func(will_call_task_group_dict):
     done_SP_set = set()
     done_SP_set.add('None')
 
+    global done_SP_list
+    done_SP_list = []
+
+
     global all_done_SP_set
     all_done_SP_set = set()
     all_done_SP_set.add('None')
@@ -320,28 +413,29 @@ def main_func(will_call_task_group_dict):
     global lock
     lock = threading.Lock()
 
-    # 传入参数模拟
-    # will_call_task_group_dict = {'call_type_id': '1', 'run_time': '07:00', 'now_date': '20170424', 'task_group_id': '1'}
+    # 作业组外部依赖
+    outside_pree_job(will_call_task_group_dict['task_group_id'])
 
-    # 检查调度类型
+    # 作业组 配置表 字典返回
     task_group_info_dict = check_task_call_type(will_call_task_group_dict)
 
-    ##调用存储过程
+    # ##调用存储过程
     call_SP(will_call_task_group_dict['task_group_id'],
             task_group_info_dict['task_group_id'][will_call_task_group_dict['task_group_id']])
 
 
 if __name__ == '__main__':
-    # 1 20170421 07:00传递参数是 可能 超过1天 23:00 跑到 次日1:00
-    # 参数为 task_group_id, call_type_id, data_date, run_time
-
     will_call_task_group_dict = {}
     will_call_task_group_dict['task_group_id'] = sys.argv[1]
     will_call_task_group_dict['call_type_id'] = sys.argv[2]
     will_call_task_group_dict['now_date'] = sys.argv[3]
     will_call_task_group_dict['run_time'] = sys.argv[4]
 
-    print(will_call_task_group_dict)
-    print("作业组[%s] 日期 [%s] 时间 [%s] 正在调用" % (
-    will_call_task_group_dict['task_group_id'], will_call_task_group_dict['now_date'], will_call_task_group_dict))
+    print("作业组[%s] 日期 [%s] 时间 [%s] 正在调用..." % (
+        will_call_task_group_dict['task_group_id'], will_call_task_group_dict['now_date'],
+        will_call_task_group_dict['run_time'])
+          )
+
+    # will_call_task_group_dict = {'call_type_id': '1', 'run_time': '07:00', 'now_date': '20170424', 'task_group_id': '1'}
+
     main_func(will_call_task_group_dict)
