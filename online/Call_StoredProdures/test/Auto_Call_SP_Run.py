@@ -1,6 +1,7 @@
 import cx_Oracle, sys, datetime, time, subprocess, os, atexit, string, multiprocessing, copy
 from signal import SIGTERM
 import threading
+import logging
 
 
 # oracle操作类
@@ -78,6 +79,7 @@ class Call_StoredProcedure_Class(object):
         res = cur.callproc(StoredProcedure_Name, para_list)
         cur.close()
         conn.close()
+        time.sleep(10)
         print(res)
         return res
 
@@ -226,6 +228,8 @@ def call_SP(task_group_id, task_group_info_dict):
 
         time.sleep(4)
 
+
+#检查内部依赖 优先级使用
 def check_inside_job(task_group_info_dict):
     will_run_job_id_list = []
 
@@ -252,7 +256,7 @@ def check_inside_job(task_group_info_dict):
     return will_run_job_id_list
 
 
-
+##多线程程序 并发调度存储过程
 def multi_call_SP(task_group_id, task_group_info_dict, will_run_job_id_list):
     thread_list = []
 
@@ -269,8 +273,8 @@ def multi_call_SP(task_group_id, task_group_info_dict, will_run_job_id_list):
     for t in thread_list:
         t.join()
 
-
-def outside_pree_job(task_group_id):
+##检查外部依赖
+def outside_pree_job(task_group_id, will_call_task_group_dict):
     # 1外部依赖
     search_sql_obj = oracle_run_sql_class(226)
     search_sql = "select other_select_sql from t_Jobs_order where group_id = '%s' and job_id = 1" % (task_group_id)
@@ -288,9 +292,25 @@ def outside_pree_job(task_group_id):
 
         if pre_other_job_flag == 1:
             print("外部依赖作业未完成,exit!")
+            clear_runing_flag_for_no_pre_job(will_call_task_group_dict)
             sys.exit(0)
 
+def clear_runing_flag_for_no_pre_job(will_call_task_group_dict):
+    file_data = open(status_file_name, 'rt').readlines()
+    with open(status_file_name, 'w') as f:
+        for line in file_data:
+            line = line.strip()
+            line_list = line.split(" ")
+            if str(line_list[0]) == will_call_task_group_dict['task_group_id'] and \
+                            str(line_list[1]) == will_call_task_group_dict['now_date']  and \
+                            str(line_list[2]) == will_call_task_group_dict['run_time'] and \
+                            str(line_list[3]) == 'R':
+                pass
+            else:
+                print(line, file=f)
 
+
+#检查所有的作业是否已经运行完毕
 def check_all_job_done(task_group_id, task_group_info_dict):
     data_date = task_group_info_dict['data_date']
     run_time = task_group_info_dict['run_time']
@@ -357,9 +377,9 @@ def check_para_info(task_group_id, job_id, task_group_info_dict):
     return call_SP_para_list
 
 
-
+##写入运行标识 status用
 def wirte_running_flag(task_group_id, data_date, run_time):
-    status_file_name = 'status.txt'
+
     # wirte_running_flag
     with open(status_file_name, 'r+') as f:
         wirte_running_flag = True
@@ -374,7 +394,7 @@ def wirte_running_flag(task_group_id, data_date, run_time):
             print(task_group_id, data_date, run_time, 'D', file=f)
             print(task_group_id, data_date, run_time, 'D', "状态(status.txt)标志已经更新")
 
-
+#"写入当天日志"
 def wirte_table_log(data_date, task_group_id, job_id, storeprodure_name, start_time, run_time):
     "写入当天日志"
     run_status = 'D'
@@ -413,11 +433,11 @@ def main_func(will_call_task_group_dict):
     global lock
     lock = threading.Lock()
 
-    # 作业组外部依赖
-    outside_pree_job(will_call_task_group_dict['task_group_id'])
-
     # 作业组 配置表 字典返回
     task_group_info_dict = check_task_call_type(will_call_task_group_dict)
+
+    # 作业组外部依赖
+    outside_pree_job(will_call_task_group_dict['task_group_id'], will_call_task_group_dict)
 
     # ##调用存储过程
     call_SP(will_call_task_group_dict['task_group_id'],
@@ -425,6 +445,7 @@ def main_func(will_call_task_group_dict):
 
 
 if __name__ == '__main__':
+    status_file_name = '/root/yunwei/test/call_SP_test/status.txt'
     will_call_task_group_dict = {}
     will_call_task_group_dict['task_group_id'] = sys.argv[1]
     will_call_task_group_dict['call_type_id'] = sys.argv[2]

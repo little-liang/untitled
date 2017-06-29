@@ -182,26 +182,20 @@ def multi_call_no_pre_job(pre_job_list):
 
 
 if __name__ == '__main__':
-    status_file_name = '/server/scripts/duigong/status.txt'
+    status_file_name = 'status.txt'
     now_date = (datetime.datetime.now()).strftime("%Y%m%d")
     now_date_time = (datetime.datetime.now()).strftime("[%Y%m%d %H:%M]")
 
     date_yesterday = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime("%Y%m%d")
-    # done?
-    check_run_done(now_date)
-
-    # #runing?
-    check_command_submit(now_date)
+    # # done?
+    # check_run_done(now_date)
+    #
+    # # #runing?
+    # check_command_submit(now_date)
 
     pre_job_list = (
-        'dw.pack_dw_all_new_ETL.pack_dw_all_new_FL',
-        'dw.pack_dw_all_new_ETL.pack_dw_all_new_ML',
         'dw.pack_dw_all_new_ETL.pack_dw_all_new_FT',
     )
 
     multi_call_no_pre_job(pre_job_list)
-    call_SP('dw.pack_dw_all_new_ETL.pack_dw_all_new_EDWPDC')
-    flush_run_flag()
 
-    delete_sql_func()
-    insert_into_sql_func()

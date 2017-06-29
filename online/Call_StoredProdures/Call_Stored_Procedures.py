@@ -99,8 +99,6 @@ class Call_StoredProcedure_Class(object):
             data_date_tmp = data_date_tmp + delta
 
 
-
-
 if __name__ == '__main__':
     duigong = Call_StoredProcedure_Class(226)
     duigong.EveryDay_Task_Func('dw.pack_dw_all_new_ETL.pack_dw_all_new_FL', 'dw.pack_dw_all_new_ETL.pack_dw_all_new_ML', 'dw.pack_dw_all_new_ETL.pack_dw_all_new_FT', 'dw.pack_dw_all_new_ETL.pack_dw_all_new_EDWPDC')

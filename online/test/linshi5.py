@@ -1,24 +1,4 @@
-def deco(arg):
-    def _deco(func):
-        def __deco():
-            print("before %s called [%s]." % (func.__name__, arg))
-            func()
-            print("  after %s called [%s]." % (func.__name__, arg))
+cmd = "ps -ef |grep 'Auto_Call_SP_Run.py'|grep '\-\-task_group_id %s \-\-call_type_id %s \-\-now_date %s \-\-run_time %s'|wc -l" % (task_group_id, call_type_id, now_date, run_time)
+p = subprocess.run(cmd, check=True, shell=True, stdout=subprocess.PIPE)
 
-        return __deco
-
-    return _deco
-
-
-@deco("mymodule")
-def myfunc():
-    print(" myfunc() called.")
-
-
-@deco("module2")
-def myfunc2():
-    print(" myfunc2() called.")
-
-
-myfunc()
-# myfunc2()
+print(p.stdout.decode().strip())

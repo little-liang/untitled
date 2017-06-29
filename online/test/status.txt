@@ -1,1 +1,6 @@
-
+load data
+infile 'C:\DiskD\Haier\test\hry_lcyhjcb_20170530.csv
+into table lll
+fields terminated by ','
+TRAILING NULLCOLS
+(stat_date, hry_id, reg_date, available_p2p_capital, available_ttj, available_gmjj, total_assets, latest_trade_date)

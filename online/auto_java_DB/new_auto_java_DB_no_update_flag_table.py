@@ -1,9 +1,8 @@
 import cx_Oracle, sys, datetime, time, subprocess, os, atexit, string, multiprocessing
 from signal import SIGTERM
 
+'''跑批程序 调用java脚本 可以跨日期加载'''
 
-
-'''分部分 跑批 脚本， 正常 ，非正常使用'''
 
 # 跑批动作类
 class auto_java_DB_class(object):
@@ -12,7 +11,7 @@ class auto_java_DB_class(object):
         self.rename = rename
         self.sql = sql
         self.time_stamp = (datetime.datetime.now() + datetime.timedelta(-1)).strftime("%Y%m%d")
-
+        self.now_date = (datetime.datetime.now()).strftime("%Y%m%d")
     def check_custom_upload_data_func(self):
         uptate_table = self.sql.search_sql_func()
         update_table_time = datetime.datetime.strptime(uptate_table[1], "%Y%m%d") + datetime.timedelta(days=1)
@@ -20,16 +19,20 @@ class auto_java_DB_class(object):
 
         mv_cfdata_dir = "/data/mv_cfdata"
         mv_cfdata_dir_success_file = "%s/%s/%s/success_%s.TXT" % (
-        mv_cfdata_dir, self.rename, update_table_time, update_table_time)
+            mv_cfdata_dir, self.rename, update_table_time, update_table_time)
 
         if os.path.isfile(mv_cfdata_dir_success_file):
-            pass
-           # print("check the condition, The [%s] [%s] success file is exist, pass, continue...\n" % (self.name, mv_cfdata_dir))
+            print("check the condition, The [%s] [%s] success file is exist, pass, continue...\n" % (
+            self.name, mv_cfdata_dir))
         else:
-           print("The file [%s] is not exist, will exit!\n" % (mv_cfdata_dir_success_file))
-           os._exit()
+            if self.now_date == update_table_time:
+                os._exit()
+            else:
+                print("The file [%s] is not exist, will exit!\n" % (mv_cfdata_dir_success_file))
+                os._exit()
 
     '''检查客户（孙振）注意的那张表，正常跑批会更新'''
+
     def check_DB_update_time_table_flag_func(self, ):
         uptate_table = self.sql.search_sql_func()
         update_table_time = uptate_table[1]
@@ -87,7 +90,6 @@ class auto_java_DB_class(object):
         # 正式调用java程序跑批
         arg1 = "/usr/bin/java -Xms512m -Xmx1024m -jar"
         arg2 = "/server/scripts/auto_java_DB_everyday/auto_java_properties/freight20161219.jar"
-        arg2 = "/data/java_scripts/freight20161219.jar"
         arg3 = "/server/scripts/auto_java_DB_everyday/auto_java_properties/"
         arg3 = "%s%s.properties" % (arg3, self.name)
         arg4 = update_table_time
@@ -118,12 +120,20 @@ class auto_java_DB_class(object):
 
         if auto_java_flag:
             # 写入跑批标识标(本地mysql)
-            # print("写入跑批标识标(本地mysql)")
-            # self.sql.insert_into_sql_func(start_date_time_stamp, end_date_time_stamp, cost_time)
+            try:
+                self.sql.insert_into_sql_func(start_date_time_stamp, end_date_time_stamp, cost_time)
+                print("DB [%s] date [%s] insert into the table ctl_fc_time" % (self.name, update_table_time))
+            except Exception as e:
+                print(e)
+                os._exit()
 
             # 写入跑批标识表（oracle，孙振等看）
-            print("[%s] [%s] 写入跑批标识表oracle" % (self.name, update_table_time))
-            self.sql.update_sql_func(update_table_time, end_date_time_stamp)
+            try:
+                self.sql.update_sql_func(update_table_time, end_date_time_stamp)
+                print("DB [%s] date [%s] insert into the table ctl_fc" % (self.name, update_table_time))
+            except Exception as e:
+                print(e)
+                os._exit()
         else:
             print("auto java is fail, will exit!\n")
             os.exit()
@@ -140,20 +150,20 @@ class auto_java_DB_class(object):
         DB_auto_java = "%s_auto_java" % (DB_name)
 
         ###变量式实例化，shell爱用的峰哥
-        DB_sql = oracle_run_sql_calss(DB_name, 223, "select * from ctl_fc")
+        DB_sql = oracle_run_sql_calss(DB_name, 226, "select * from ctl_fc")
         DB_auto_java = auto_java_DB_class(DB_name, DB_rename, DB_sql)
 
+        # 检查是否已经传来数据
+        DB_auto_java.check_custom_upload_data_func()
         # 检查是否已经跑过批
         DB_auto_java.check_DB_update_time_table_flag_func()
 
         # 检查跑批是否正在运行
         DB_auto_java.check_auto_java_DB_isRunning_func()
 
-        # 检查是否已经传来数据
-        DB_auto_java.check_custom_upload_data_func()
-
         # 真正跑批
         DB_auto_java.run_auto_java_DB_func()
+
 
 # oracle操作类
 class oracle_run_sql_calss(object):
@@ -163,8 +173,9 @@ class oracle_run_sql_calss(object):
         if oracle_DB == 223:
             self.oracle_DB = "etl/etl@10.138.22.223:1521/edw"
         elif oracle_DB == 226:
-            self.oracle_DB = "etl/etl_Haier1111@10.138.22.226:1521/edw"
+            self.oracle_DB = "etl/etl_Haier@10.138.22.226:1521/edw"
         self.search_sql = search_sql
+        self.time_stamp = (datetime.datetime.now() + datetime.timedelta(-1)).strftime("%Y%m%d")
 
     # 查询标识表方法
     def search_sql_func(self):
@@ -175,7 +186,8 @@ class oracle_run_sql_calss(object):
             search_sql_tuple = cur.execute(search_sql).fetchone()
             conn.close()
             return search_sql_tuple
-        except BaseException:
+        except BaseException as e:
+            print(e)
             print("Oracle connect is broken!!!")
             os.exit()
 
@@ -183,7 +195,7 @@ class oracle_run_sql_calss(object):
     def update_sql_func(self, data_date, update_time):
         # 拼凑sql语句更新用的
         update_sql = "update ctl_fc set data_date = '%s',update_time = to_date('%s','yyyy/mm/dd HH24:MI:SS') where system_id = '%s'" % (
-        data_date, update_time, self.name)
+            data_date, update_time, self.name)
 
         conn = cx_Oracle.connect(self.oracle_DB)
         cur = conn.cursor()
@@ -195,13 +207,14 @@ class oracle_run_sql_calss(object):
     def insert_into_sql_func(self, start_date_time_stamp, end_date_time_stamp, cost_time):
         insert_into_sql = "insert into ctl_fc_time(system_id,start_date,end_date,Data_Date,cost_time) values"
         insert_into_sql = "%s('%s',to_date('%s','yyyy/mm/dd HH24:MI:SS'),to_date('%s','yyyy/mm/dd HH24:MI:SS'),'%s','%s')" % (
-        insert_into_sql, self.name, start_date_time_stamp, end_date_time_stamp, self.time_stamp, cost_time)
+            insert_into_sql, self.name, start_date_time_stamp, end_date_time_stamp, self.time_stamp, cost_time)
 
         conn = cx_Oracle.connect(self.oracle_DB)
         cur = conn.cursor()
         cur.execute(insert_into_sql)
         conn.commit()
         conn.close()
+
 
 # 守护进程包裹类
 class Daemon:
@@ -307,11 +320,12 @@ class Daemon:
         """ run your fun"""
         while True:
             main_func()
-            time.sleep(3)
+            time.sleep(30)
+
 
 def main_func():
-    # conf_file = "/server/scripts/auto_java_DB_everyday/auto_java_scripts_sbs/DBlist.txt"
-    conf_file = "/root/yunwei/test/DBlist.txt"
+    conf_file = "/server/scripts/auto_java_DB_everyday/auto_java_daemon/DBlist.txt"
+    # conf_file = "/root/yunwei/test/DBlist.txt"
 
     # 进程池，同时8个
     pool = multiprocessing.Pool(8)
@@ -329,7 +343,8 @@ def main_func():
 
 # 主函数
 if __name__ == '__main__':
-    daemon = Daemon('/tmp/watch_process.pid', stdout='/tmp/watch_stdout.log', stderr="/tmp/watch_stderr.log")
+    daemon = Daemon('/var/run/auto_java_daemon.pid', stdout='/var/log/auto_java_daemon_stdout.log',
+                    stderr="/var/log/auto_java_daemon_stderr.log")
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             daemon.start()

@@ -107,7 +107,7 @@ class Daemon(object):
         """ run your fun"""
         while True:
             main_func()
-            time.sleep(1)
+            time.sleep(5)
 
 # oracle操作类
 class oracle_run_sql_class(object):
@@ -254,8 +254,7 @@ def check_TaskGroup_RunTime_func(task_time_config_dict):
 
 #并发函数
 def _check_TaskGroup_RunTime_func(task_group_id, call_type_info):
-    status_file_name = 'status.txt'
-
+    status_file_name = '/root/yunwei/test/call_SP_test/status.txt'
     # 没有文件就创建文件
     if not os.path.isfile(status_file_name):
         with open(status_file_name, 'a') as f:
@@ -264,12 +263,11 @@ def _check_TaskGroup_RunTime_func(task_group_id, call_type_info):
     #时间定义参数
     now_date = ((datetime.datetime.now()) + datetime.timedelta(days=-1)).strftime("%Y%m%d")
     now_date_time = (datetime.datetime.now()).strftime("%H:%M")
-    now_date_time = '07:00'
-
     #查看当前时间 是否 对的上
     for call_type_id in call_type_info['call_type']:
         for run_time in call_type_info['call_type'][call_type_id]['run_time']:
 
+            now_date_time = '18:17'
             #如果时间对上了，看看是不是在调用了
             if now_date_time == run_time:
                 # print(task_group_id, call_type_id, run_time)
@@ -288,7 +286,6 @@ def _check_TaskGroup_RunTime_func(task_group_id, call_type_info):
                     will_call_task_group_dict['now_date'] = str(now_date)
                     will_call_task_group_dict['run_time'] = str(run_time)
 
-
                     # wirte_running_flag
                     time.sleep(1)
                     with open(status_file_name, 'r+') as f:
@@ -304,15 +301,26 @@ def _check_TaskGroup_RunTime_func(task_group_id, call_type_info):
                             print(task_group_id, now_date, run_time, 'R', file=f)
 
                     ##调用另一个跑批脚本
-                    # print('call SP running .....', will_call_task_group_dict)
-                    Run_file = "%s/Auto_Call_SP_Run.py" % (os.path.dirname(__file__))
-                    cmd = "python %s %s %s %s %s" % (Run_file, task_group_id, call_type_id, now_date, run_time)
-                    subprocess.run(cmd, check=True)
+                    t = threading.Thread(target=run_call_SP_script, args=(task_group_id, call_type_id, now_date, run_time))
+                    t.start()
 
+            else:
+                print('当前时间 [%s %s] 无任务' % (now_date, now_date_time))
+
+
+def run_call_SP_script(task_group_id, call_type_id, now_date, run_time):
+    Run_file = "/root/yunwei/test/call_SP_test/Auto_Call_SP_Run.py"
+    cmd = []
+    cmd.append("/usr/local/bin/python3")
+    cmd.append(Run_file)
+    cmd.append(task_group_id)
+    cmd.append(call_type_id)
+    cmd.append(now_date)
+    cmd.append(run_time)
+    subprocess.run(cmd, check=True)
 
 ##检测调度运行完毕
 def check_TaskGroup_RunStatusDone_func(task_group_id, run_time, now_date):
-    status_file_name = 'status.txt'
     now_done_statu = False
     ##done?
     with open(status_file_name, 'r') as f:
@@ -328,10 +336,8 @@ def check_TaskGroup_RunStatusDone_func(task_group_id, run_time, now_date):
 
 ##检测调度运行zhengzai运行
 def check_TaskGroup_RunStatusRunning_func(task_group_id, run_time, now_date):
-    status_file_name = 'status.txt'
-
     now_run_statu = False
-    ##done?
+    ##这里是 基于 运行状态文件的 判断
     with open(status_file_name, 'r') as f:
         for line in f:
             line = line.strip()
@@ -339,7 +345,7 @@ def check_TaskGroup_RunStatusRunning_func(task_group_id, run_time, now_date):
             if line_list[0] == str(task_group_id) and line_list[1] == now_date and line_list[
                 2] == run_time and \
                             line_list[3] == 'R':
-                print('今天任务正在运行...', task_group_id, now_date, run_time, 'R')
+                print('今天任务正在运行...', task_group_id, now_date, run_time, 'R', datetime.datetime.now())
                 now_run_statu = True
                 return now_run_statu
 
@@ -349,28 +355,29 @@ def check_TaskGroup_RunStatusRunning_func(task_group_id, run_time, now_date):
 #主程序
 def main_func():
     #取配置文件
+
     db226_config = Get_Config_Json_Class(226)
     task_time_config_dict = db226_config.get_task_time_config_func()
-
     check_TaskGroup_RunTime_func(task_time_config_dict)
+#
+# if __name__ == '__main__':
+#     main_func()
 
 if __name__ == '__main__':
-    main_func()
+    status_file_name = '/root/yunwei/test/call_SP_test/status.txt'
+    daemon = Daemon('/var/run/call_SP2.pid', stdout='/var/log/call_SP_stdout2.log', stderr="/var/log/call_SP_stderr2.log")
 
-# if __name__ == '__main__':
-#     status_file_name = 'status.txt'
-#     daemon = Daemon('/var/run/call_SP1.pid', stdout='/var/log/call_SP_stdout1.log', stderr="/var/log/call_SP_stderr1.log")
-#     if len(sys.argv) == 2:
-#         if 'start' == sys.argv[1]:
-#             daemon.start()
-#         elif 'stop' == sys.argv[1]:
-#             daemon.stop()
-#         elif 'restart' == sys.argv[1]:
-#             daemon.restart()
-#         else:
-#             print('unknown command')
-#             sys.exit(2)
-#         sys.exit(0)
-#     else:
-#         print('usage: %s start|stop|restart' % sys.argv[0])
-#         sys.exit(2)
+    if len(sys.argv) == 2:
+        if 'start' == sys.argv[1]:
+            daemon.start()
+        elif 'stop' == sys.argv[1]:
+            daemon.stop()
+        elif 'restart' == sys.argv[1]:
+            daemon.restart()
+        else:
+            print('unknown command')
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print('usage: %s start|stop|restart' % sys.argv[0])
+        sys.exit(2)
