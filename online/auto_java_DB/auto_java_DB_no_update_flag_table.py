@@ -174,11 +174,6 @@ time_stamp = time_stamp.strftime("%Y%m%d")
 
 #外层自动跑批,由并发多进程（注意！！是多进程调用）
 def auto_java_func(DB_name, DB_rename):
-    #原本单个实例化，变成由并发多进程 同时实例化同时进行批处理动作
-    # fchry_sql = oracle_run_sql_calss("fchry", 226, "select * from ctl_fc")
-    # fchry_auto_java = auto_java_DB_class("fchry", fchry_sql)
-    # fchry_auto_java.run_auto_java_DB_func()
-
     #编凑实例化，这里有两个类
     DB_sql = "%s_sql" % (DB_name)
     DB_auto_java = "%s_auto_java" % (DB_name)
@@ -188,16 +183,16 @@ def auto_java_func(DB_name, DB_rename):
     DB_auto_java = auto_java_DB_class(DB_name, DB_rename, DB_sql)
 
     #检查是否已经传来数据
-    # DB_auto_java.check_custom_upload_data_func()
+    DB_auto_java.check_custom_upload_data_func()
 
     #检查是否已经跑过批
-    # DB_auto_java.check_DB_update_time_table_flag_func()
+    DB_auto_java.check_DB_update_time_table_flag_func()
 
     #检查跑批是否正在运行
     DB_auto_java.check_auto_java_DB_isRunning_func()
 
     #真正跑批
-    # DB_auto_java.run_auto_java_DB_func()
+    DB_auto_java.run_auto_java_DB_func()
 
 if __name__ == '__main__':
     conf_file = "/server/scripts/auto_java_DB_everyday/auto_java_scripts_sbs/DBlist.txt"

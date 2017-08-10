@@ -1,16 +1,6 @@
-load data
-infile 'C:\DiskD\Haier\test\hry_lcyhjcb_20170530.csv'
-into table auto_hry_lcyhjcb
-fields terminated by ','
-TRAILING NULLCOLS
-(stat_date, hry_id, reg_date, available_p2p_capital, available_ttj, available_gmjj, total_assets, latest_trade_date)
-
-
-
-load data
-infile '/data/hrydata/hry_lcyhjcb_20170612.csv
-into table lcyhjcb
-fields terminated by ','
-TRAILING NULLCOLS
-(STAT_DATE,HRY_ID,REG_DATE,AVAILABLE_P2P_CAPITAL,AVAILABLE_TTJ,AVAILABLE_GMJJ,TOTAL_ASSETS,LATEST_TRADE_DATE
-)
+T-mins 5
+T-mins 4
+T-mins 3
+T-mins 2
+T-mins 1
+Kaboom!

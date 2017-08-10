@@ -1,35 +1,45 @@
-import cx_Oracle
-class Call_StoredProcedure_Class(object):
-    def __init__(self, Server_host):
-        self.Server_host = Server_host
-        if Server_host == 223:
-            self.Server_host_id = "hry_exp/hry_exp@10.138.22.223:1521/edw"
-        elif Server_host == 226:
-            self.Server_host_id = "hry_exp/hry_exp@10.138.22.223:1521/edw"
+import pickle
+def BinSearch(array, key, low, high, i):
+    mid = int((low+high)/2)
+    if key == array[mid]:  # 若找到
+        print('找了多少次', i)
+        return mid
+        # return array[mid]
 
-    def Before_Call_StoredProcedure(self, StoredProcedure_Name_list):
-        pass
+    if low > high:
+        print(i)
+        return False
 
-        # 调取存储过程代码
-    def Call_StoredProcedure(self, StoredProcedure_Name, para_list):
-        print("kkk", StoredProcedure_Name, para_list)
+    if key < array[mid]:
+        i += 1
+        return BinSearch(array, key, low, mid-1, i)  #递归
 
-        try:
-            conn = cx_Oracle.connect(self.Server_host_id)
-            cur = conn.cursor()
-            res = cur.callproc(StoredProcedure_Name, para_list)
-            cur.close()
-            conn.close()
-            print(res)
-            return res
-
-        except Exception as e:
-            print(e)
-para_list = []
-para_list.append('oh_hry_lcyw' )
-
-#调用存储过程
-pp = Call_StoredProcedure_Class(223)
+    if key > array[mid]:
+        i += 1
+        return BinSearch(array, key, mid+1, high, i)
 
 
-pp.Call_StoredProcedure('hry_exp.pkg_de_duplication.pro_main', ['oh_hry_lcyw','20170101','ff', 'gggggggggg'])
+
+
+
+
+if __name__ == "__main__":
+
+    i = 1
+    # a = ['劳动', '劳动力', '劳动合同', '劳动成果', '劳动节', '劳工', '劳斯', '劳斯接', '劳斯海', '劳累', '势', '势不可挡', '势力', '势在必行', '势头']
+
+    with open('word_list.pk1', 'rb') as f:
+        a = pickle.load(f)
+        print(a)
+
+        b = pickle.load(f)
+        print(b)
+
+
+        for line in b:
+            i = 1
+            index = BinSearch(a, line, 0, len(a) - 1, i)
+            print(index, a[index])
+            break
+
+
