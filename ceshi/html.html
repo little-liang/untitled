@@ -1,0 +1,604 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN">
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>国家企业信用信息公示系统</title>
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="keywords" content="全国 企业 信用 信息 公示"/>
+    <meta name="description" content="国家企业信用信息公示系统"/>
+    <meta http-equiv="Cache-Control" content="no-transform"/>
+
+    <link rel="stylesheet" href="/css/lib/reset.css?v=201709262935"/>
+    <link rel="stylesheet" href="/css/lib/zxx.lib.css?v=201709262935"/>
+    <link rel="stylesheet" href="/css/lib/font-awesome.min.css?v=201709262935"/>
+    <link rel="stylesheet" href="/css/common-homepage.css?v=201709262935"/>
+    <link rel="stylesheet" href="/css/common_fq.css?v=201709262935"/>
+    <link rel="stylesheet" href="/css/portal.css?v=201709262935"/>
+
+    <script type="text/javascript" src="/js/lib/jquery-1.11.1.min.js?v=201709262935"></script>
+    <script type="text/javascript" src="/js/affiche-common-search.js?v=201709262935"></script>
+    <script type="text/javascript" src="/js/geetest/geetestlib.js?v=201709262935"></script>
+    <script src="/js/logcollector.js"></script>
+
+    <div style="display:none">
+        <link rel="stylesheet" href="/css/mid.css"/>
+        <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1261033118'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s4.cnzz.com/z_stat.php%3Fid%3D1261033118' type='text/javascript'%3E%3C/script%3E"));</script>
+        <script type="text/javascript">
+            var _hmt = _hmt || [];
+            (function () {
+                var hm = document.createElement("script");
+                hm.src = "https://hm.baidu.com/hm.js?cdb4bc83287f8c1282df45ed61c4eac9";
+                var s = document.getElementsByTagName("script")[0];
+                s.parentNode.insertBefore(hm, s);
+            })();
+        </script>
+        <script type="text/javascript">
+            window.onload = function () {
+                sessionId_gsxt = "1E30A5EB15BF92BE89D5FE4FE2281ED6-n2";
+                t1Collect_gsxt();
+            }
+        </script>
+    </div>
+    <div id="loading" class="mid loading" style="display: none"><img src="/images/loading.png" alt="加载中。。"></div>
+    <div id="loadFail" class="mid loadFail" style="display: none"><img src="/images/loadFail.png" alt="加载失败"></div>
+    <div class="model mid" style="display: none"></div>
+</head>
+<body>
+<div class="container">
+    <div class="header_box">
+        <div class="header f16">
+            <div class="header_container rel">
+                <a class="menu_item db l tc wh rel" href="/corp-query-homepage.html"><span
+                        class="icon_01 db abs"></span>首页</a>
+                <a class="menu_item db l tc wh rel pl50" href="/login"><span class="icon_02 db abs"></span>企业信息填报</a>
+                <a class="menu_item db l tc wh rel pl50" href="/affiche-query-info-paperall.html?&FKID=0&areaId=100000"><span
+                        class="icon_04 db abs"></span>信息公告</a>
+                <a class="menu_item db l tc wh rel pl20" href="/affiche-query-info-help.html"><span
+                        class="icon_03 db abs"></span>使用帮助</a>
+                <span class="menu_item" style="display:inline-block;height:100%;width:0;border-right:none;"></span>
+                <div class="r choose_state rel f12" id="choose_state">
+                    <div class="tc choose_txt">导航</div>
+                    <div class="loadingView abs">加载中......</div>
+                    <div class="state_box abs">
+
+                        <table class=" f14 tcc" width="100%">
+                            <tr>
+                                <td class="b tc" width="13%">华北</td>
+                                <td width="4%">|</td>
+                                <td><a href="#">北京</a><a href="#">天津</a><a href="#">河北</a><a href="#">山西</a><a href="#">内蒙古</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="b tc">东北</td>
+                                <td>|</td>
+                                <td><a href="#">辽宁</a><a href="#">吉林</a><a href="#">黑龙江</a></td>
+                            </tr>
+                            <tr>
+                                <td class="b tc">华东</td>
+                                <td>|</td>
+                                <td><a href="#">上海</a><a href="#">江苏</a><a href="#">浙江</a><a href="#">安徽</a><a href="#">福建</a><a
+                                        href="#">江西</a><a href="#">山东</a></td>
+                            </tr>
+                            <tr>
+                                <td class="b tc">华南</td>
+                                <td>|</td>
+                                <td><a href="#">广东</a><a href="#">广西</a><a href="#">海南</a></td>
+                            </tr>
+                            <tr>
+                                <td class="b tc">华中</td>
+                                <td>|</td>
+                                <td><a href="#">河南</a><a href="#">湖北</a><a href="#">湖南</a></td>
+                            </tr>
+                            <tr>
+                                <td class="b tc">西南</td>
+                                <td>|</td>
+                                <td><a href="#">重庆</a><a href="#">四川</a><a href="#">贵州</a><a href="#">云南</a><a href="#">西藏</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="b tc">西北</td>
+                                <td>|</td>
+                                <td><a href="#">陕西</a><a href="#">甘肃</a><a href="#">青海</a><a href="#">宁夏</a><a href="#">新疆</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="search_box">
+        <div class="search auto rel">
+            <div class="search_logo_100000"></div>
+            <div class="search_box2">
+                <div class="searchkuang"></div>
+                <div class="tabs f14 r">
+                    <span class='search-icon-l'></span>
+                    <a href="javascript:;" class="search_tab general_tab selected" onclick="selectTab(this)">企业信用信息</a>
+                    <i>|</i>
+                    <a href="javascript:;" class="search_tab excep_tab" onclick="selectTab(this)">经营异常名录</a>
+                    <i>|</i>
+                    <a href="javascript:;" class="search_tab ill_tab" onclick="selectTab(this)">严重违法失信企业名单</a>
+                </div><!-- /tabs -->
+                <form name="f" action="/corp-query-search-1.html" method="post">
+                    <input type="text" id="keyword" name="searchword" placeholder="请输入企业名称、统一社会信用代码或注册号" class="abs">
+                    <input id="token" type="hidden" name="token" value="2016"/>
+                    <input type="hidden" name="tab" id="selectedSearchTab" value=""/>
+                    <button id="btn_query" title="查询" type="button" class="abs search_btn">
+                    </button>
+                    <button id="pop-captcha-submit" class="db f18 l fw" type="submit" style="display: none;"></button>
+                    <div id="popup-captcha"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="main-layout fw f14">
+        <div class="search_result">查询结果超过<span class="search_result_span1">50</span>条信息，用时0.025秒，请输入更精确的查询条件</div>
+        <!-- /search_result -->
+
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_4V21V0bL1FCd9vDvUh58SQ2m2OkjTquGCN0zdCPll8e3q2clzsSSI3FZDyFTY6xprMVSncmf9lmbnPZlDq0xKQQ-1507514649856%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>股份有限公司</h1>
+
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">开业</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    统一社会信用代码：
+                    <span class="g3">
+                                911000001000013428
+  									</span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    法定代表人：<span class="g3">
+  							田国立
+  						  </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+    						1983年10月31日
+    					  </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+        <!-- 内资分公司、内资非公司企业法人分支机构、内资合伙企业分支机构、个人独资分支机构、
+        内资非法人企业、外资分支机构、外商投资合伙企业分支机构、从事生产经营活动企业、
+        中外合作非法人企业、农民专业合作社分支机构-->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_4hivYaCt8RGWqLD-1IJL52kbjLxN_0m8tALv9dskZRlvQ4d5B1n7bGSFAgXZBHbMC-1507514649858%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>股份有限公司晋城新市西街支行</h1>
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">存续（在营、开业、在册）</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    统一社会信用代码：
+                    <span class="g3">
+                            91140500678192341P
+                </span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    负责人：<span class="g3">
+              李文芳
+              </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+            2005年05月16日
+            </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+
+        <!-- 内资合伙企业、外商投资合伙企业 -->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_4JkrrmEW3nHw_aEIQewU2zoW4xyu5a22aNJBfjlUc2soYrm5CjmHvNRyRmjfjqLKzjhX4gqDVy4yhsjU-Y38-h9q3QndkieY7-8Ezf3XsYMw-1507514649859%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>（香港）有限公司深圳分行</h1>
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">迁出</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    注册号:
+                    <span class="g3">
+                            440000500004271
+                </span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    负责人：<span class="g3">
+              曾轲
+              </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+            1985年04月13日
+            </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+
+        <!-- 内资合伙企业、外商投资合伙企业 -->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_4cmn342J9q3VolLmT865CQoj1jXCTvB3jUPX4dduekEWc222pWxtPgvoQ6LKTAnOS-1507514649860%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>股份有限公司浙江省分行</h1>
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">存续</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    统一社会信用代码：
+                    <span class="g3">
+                            913300008429100948
+                </span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    负责人：<span class="g3">
+              郭心刚
+              </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+            1979年04月23日
+            </span>
+                </div>
+                <div class="div-info-circle3">
+                    历史名称：<span class="g3">
+    						<font color=red>中国银行</font>浙江省分行
+    					  </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+
+        <!-- 内资合伙企业、外商投资合伙企业 -->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_47iqsnBRRk0BZh-cIpmE0eEzG-sejdW7adsDYvjQSywCm2H449gcig8YelY7UFTY1-1507514649862%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>南昌信托咨询公司</h1>
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">吊销，未注销</span>
+            </div>
+            <span class="f14 search_result_span">（该企业被列入经营异常名录）</span>
+
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    注册号:
+                    <span class="g3">
+                            360000020004012
+                </span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    法定代表人：<span class="g3">
+              康棣华、汪竹松
+              </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+        			1984年09月25日
+        			</span>
+                    <!-- <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                     吊销原因：<span class="g3">
+
+                          </span>
+                     <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                     吊销日期：<span class="g3">
+
+                          </span>
+                   -->
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+
+        <!-- 内资合伙企业、外商投资合伙企业 -->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_42dUy_ziG118ilntAv-WGsf9j1C_yDEdJf4DhjI6SAYMHUJtLGuRwC4ELgHSOBZuBbSomTxj1dzKcXE6_b5LrXA-1507514649863%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>苏州工业园区支行</h1>
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">迁出</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    注册号:
+                    <span class="g3">
+                            3205001802596
+                </span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    负责人：<span class="g3">
+              王兵
+              </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+            1994年07月15日
+            </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+
+        <!-- 内资合伙企业、外商投资合伙企业 -->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_4O-lvQe_v4DiriI83-cCJv87lzp46q-Zh14COZNIftdicYUY6PyS0xWgYjErrIBOLqgbSFBWa0oiP1aw_ecWL2Nq3QndkieY7-8Ezf3XsYMw-1507514649864%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>股份有限公司中山大涌支行</h1>
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">在营（开业）企业</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    统一社会信用代码：
+                    <span class="g3">
+                            91442000712314390C
+                </span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    负责人：<span class="g3">
+              麦海强
+              </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+            1991年03月26日
+            </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+
+        <!-- 内资合伙企业、外商投资合伙企业 -->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_4uV1dU5gTSyBvEHHqHhojj0_dXf8FlJMecDfMKcjSE8U061mksXBIseVrzGUEcdcpIBhdozEtSW1Di2TN2C0VQdq3QndkieY7-8Ezf3XsYMw-1507514649865%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>股份有限公司中山西区支行</h1>
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">在营（开业）企业</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    统一社会信用代码：
+                    <span class="g3">
+                            91442000898101990W
+                </span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    负责人：<span class="g3">
+              徐牧雨
+              </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+            1991年04月30日
+            </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+
+        <!-- 内资合伙企业、外商投资合伙企业 -->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_44dlGCyD3LFrWp-yICeIMLBzf8BoB1FKGTw9gmNqzHlQaT7e1OfMGrGZkT5rdV-iDqgbSFBWa0oiP1aw_ecWL2Nq3QndkieY7-8Ezf3XsYMw-1507514649866%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>股份有限公司中山环城支行</h1>
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">在营（开业）企业</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    统一社会信用代码：
+                    <span class="g3">
+                            91442000982120684K
+                </span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    负责人：<span class="g3">
+              吴婷婷
+              </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+            1997年01月17日
+            </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+
+        <!-- 内资合伙企业、外商投资合伙企业 -->
+        <!-- 内资公司法人、内资非公司企业法人、外资公司法人、农民专业合作社 -->
+        <a class="search_list_item db" target='_blank'
+           href='/%7BQNqpuoiWj41SkY1QIeGmeamRaBfJH1TD1T7noqnSk-vPBlQ_FFxkV6EgcSVqnm_4PX31_YRABnZNDFe_AAkpApLdh3JQMcAQXTd0mNVGnthqQfhQD6BIoBbYCpJ0Ela4hkyOWW6rNEnsUDyt4wT7Yw-1507514649868%7D'>
+            <h1 class="f20">
+                <font color=red>中国银行</font>秦皇岛分行</h1>
+
+            <div class="wrap-corpStatus">
+                <span class="ying_satus2 ml10">存续（在营、开业、在册）</span>
+            </div>
+            <span class="f14 search_result_span"></span>
+            <div class="f14 g9 pt10">
+                <div class="div-map2">
+                    <i class="fa fa-map2" aria-hidden="true"></i>
+                    注册号:
+                    <span class="g3">
+                                130300100002874
+  									</span>
+                </div>
+                <div class="div-user2">
+                    <i class="fa fa-user2 ml20" aria-hidden="true"></i>
+                    法定代表人：<span class="g3">
+  							耿铁连
+  						  </span>
+                </div>
+                <div class="div-info-circle2">
+                    <i class="fa fa-info-circle2 ml20" aria-hidden="true"></i>
+                    成立日期：<span class="g3">
+    						1990年05月14日
+    					  </span>
+                </div>
+            </div>
+        </a><!-- /search_list_item -->
+
+        <!-- 内资分公司、内资非公司企业法人分支机构、内资合伙企业分支机构、个人独资分支机构、
+        内资非法人企业、外资分支机构、外商投资合伙企业分支机构、从事生产经营活动企业、
+        中外合作非法人企业、农民专业合作社分支机构-->
+
+        <style type="text/css">
+            .pagination {
+                padding: 5px;
+                margin: 30px auto 0;
+                text-align: center;
+                font-size: 12px;
+            }
+
+            .pagination a, .pagination a:link, .pagination a:visited {
+                padding: 4px 10px;
+                margin: 2px;
+                border: 1px solid #ddd;
+                text-decoration: none;
+                color: #d1ab62;
+                background-color: #fff;
+            }
+
+            .pagination a:hover, .pagination a:active {
+                padding: 4px 10px;
+                border: 1px solid #ddd;
+                color: #fff;
+                text-decoration: none;
+                background-color: #d1ab62
+            }
+
+            .pagination span.current {
+                padding: 4px 10px;
+                margin: 2px;
+                background-color: #d1ab62;
+                color: #FFF;
+            }
+
+            .pagination span.disabled {
+                padding: 4px 10px;
+                margin: 2px;
+                border: 1px solid #eee;
+                color: #ddd;
+                background-color: #fff;
+            }
+        </style>
+        <div class="pagination">
+            <form method="get" action="" name="qPagerForm">
+                <input type="hidden" name="geetest_seccode" value="65f24fe0e92f2c4fc9a2e4eea2bcb72b|jordan"/>
+                <input type="hidden" name="tab" value="ent_tab"/>
+                <input type="hidden" name="geetest_validate" value="65f24fe0e92f2c4fc9a2e4eea2bcb72b"/>
+                <input type="hidden" name="searchword" value="中国银行"/>
+                <input type="hidden" name="geetest_challenge" value="c509fdf376c7c9b2e5ec6e240c7c63c579"/>
+                <input type="hidden" name="token" value="126703096"/>
+                <input type="hidden" name="page" value="1"/>
+                <span class="disabled">首页</span>
+                <span class="disabled">上一页</span>
+                <span class="current">1</span>
+                <a href="javascript:turnOverPage(2)">2</a>
+                <a href="javascript:turnOverPage(3)">3</a>
+                <a href="javascript:turnOverPage(4)">4</a>
+                <a href="javascript:turnOverPage(5)">5</a>
+                <a href="javascript:turnOverPage(2)">下一页</a>
+                <a href="javascript:turnOverPage(5)">末页</a>
+            </form>
+            <script language="javascript">
+                function turnOverPage(no) {
+                    var qForm = document.qPagerForm;
+                    if (no > 5) {
+                        no = 5;
+                    }
+                    if (no < 1) {
+                        no = 1;
+                    }
+                    qForm.page.value = no;
+                    qForm.action = "/corp-query-search-" + no + ".html";
+                    qForm.submit();
+                }
+            </script>
+        </div>
+
+        <!-- 使用<div class="main-layout fw f14">代替<div class="container">-->
+    </div>
+    <!-- 将以下代码的功能全部提到上面 -->
+</div>
+<div class="footer3" style="padding-bottom: 20px;">
+    <div class="footer_info1" style="padding-top: 20px;">
+        <div>主办单位：中华人民共和国国家工商行政管理总局</div>
+        <div>地址：北京市西城区三里河东路八号&nbsp;&nbsp;&nbsp;邮政编码：100820&nbsp;&nbsp;&nbsp;备案号：京ICP备16053442号-1</div>
+        <div class="connect-link"><input type="hidden" value="100000" id="subsite"/><a href="/tel.html" target="_blank"
+                                                                                       style="color:#ff2020">业务咨询与技术支持联系方式</a>
+        </div>
+        <input type="hidden" value="79220@GSZJ_IDC_GSXT_WB_QTWEB_015"/>
+    </div>
+    <!--
+    <div style="position: absolute;right:20%;top:25px;width: 140px;height: 55px;" id="imgBox"><img onclick="Link('bm30000013')" style='margin:0;border:0;cursor: pointer;' src="http://121.43.68.40/exposure/images/jiucuo.png?v=bm30000013"></div>
+    -->
+</div>
+</body>
+</html>
