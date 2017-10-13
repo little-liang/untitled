@@ -254,12 +254,9 @@ class gsxt(object):
         return ans
 
     def run(self):
-
         ###保持浏览器开启
         while True:
 
-            tmp_s = random.randint(1, 8)
-            time.sleep(tmp_s)
             ##数据库读出, 或者socket接收
             w_list = run_sql_obj.common_run_sql("select short_name from query where flag=0 limit 10")
             if len(w_list) == 0:
@@ -269,26 +266,22 @@ class gsxt(object):
 
             ##查所有
             for company in w_list:
-
                 company = company[0]
-                print(company)
+
                 while True:
+                    ##如果未查或者未查完
+                    sql = "select flag from result where name='%s' and (flag = '0' or flag ='1')" % (company)
+                    flag = run_sql_obj.common_run_sql(sql)
 
                     sql = "select flag from result where name='%s'" % (company)
                     num_company = run_sql_obj.common_run_sql(sql)
 
-                    sql = "select flag from result where name='%s' and (flag = '0' or flag ='1')" % (company)
-                    flag = run_sql_obj.common_run_sql(sql)
-
                     if len(flag) == 0 and len(num_company) >= 1:
-                        print(company, '已经爬完程序,修改为已完成')
                         sql = "update query set flag=1 where short_name='%s'" % (company)
                         run_sql_obj.common_run_sql(sql)
                         break
-
                     else:
                         self.hack_geetest(company)
-                    break
 
 
 
@@ -296,8 +289,8 @@ class gsxt(object):
 
     def hack_geetest(self, company):
         flag = True
+        self.input_params(company)
         while flag:
-            self.input_params(company)
             img_url1, img_url2 = self.drag_pic()
             tracks = crack_picture(img_url1, img_url2).pictures_recover()
             tsb = self.emulate_track(tracks)
@@ -307,11 +300,14 @@ class gsxt(object):
 
                 soup = BeautifulSoup(self.br.page_source, 'html.parser')
                 all_a_lable = soup.find_all("a", attrs={"class": "search_list_item db"})
-                if len(all_a_lable) == 0:
-                    print(company, ' 没有工商信息,可能被封了')
-                    time.sleep(2)
-                    continue
 
+                if len(all_a_lable) == 0:
+                    print(company, ' 这个名字啥也没有工商信息')
+                    sql = "update query set flag=1 where short_name='%s'" % (company)
+                    run_sql_obj.common_run_sql(sql)
+                    break
+
+                ##写每个子公司的url
                 for sp in all_a_lable:
                     company_name = sp.h1.text
                     company_name = str(company_name).strip()
@@ -333,9 +329,10 @@ class gsxt(object):
                         run_sql_obj.common_run_sql(sql)
                     else:
                         now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-                        sql ="update result set url = '%s', updatetime='%s' where fullname = '%s' " % (url_string, now_time, company_name)
-                        print(sql)
+                        sql =  "update result set url = '%s', updatetime='%s' where fullname = '%s' " % (url_string,company_name, now_time)
+                        # print(sql)
                         res = run_sql_obj.common_run_sql(sql)
+
                 break
             elif '吃' in tsb.decode():
                 time.sleep(0.2)
@@ -367,4 +364,3 @@ if __name__ == "__main__":
             print(str(e))
             a_obj.quit_webdriver()
             continue
-

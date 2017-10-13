@@ -17,8 +17,41 @@ from selenium.webdriver.common.keys import Keys
 from selenium import webdriver
 from bs4 import BeautifulSoup
 import sys
+import MySQLdb
 
 
+class mysql(object):
+    """
+    mysql 操作
+
+    """
+
+    def __init__(self):
+        pass
+
+    def common_run_sql(self, sql):
+        config_info_json = {
+            'host': "172.18.126.51",
+            'port': 3306,
+            'db': 'geetest',
+            'user': 'root',
+            'password': 'Abcd1234'}
+        self.conn = MySQLdb.connect(**config_info_json, charset='utf8')
+        self.cursor = self.conn.cursor()
+
+        ## 待优化 每次查询都要连接断开,假设连接断开很慢,
+        ## 最好本次程序运行完毕在进行数据库断开操作
+        ##main 做成 上下文??
+        try:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            return result
+        finally:
+            self.conn.commit()
+
+    def __del__(self):
+        self.cursor.close()
+        self.conn.close()
 class crack_picture(object):
     def __init__(self, img_url1, img_url2):
         self.img1, self.img2 = self.picture_get(img_url1, img_url2)
@@ -93,7 +126,7 @@ class crack_picture(object):
 
 
 class gsxt(object):
-    def __init__(self, br_name="phantomjs"):
+    def __init__(self, br_name="chrome"):
         self.br = self.get_webdriver(br_name)
         self.br.set_window_size(width=800, height=600)
         self.wait = WebDriverWait(self.br, 20, 1.0)
@@ -198,15 +231,21 @@ class gsxt(object):
             return ans
 
     def run(self):
-        for i in [u'交通银行', u'中国银行']:
-            r_url_dict = self.hack_geetest(i)
-        self.quit_webdriver()
+        w_list = run_sql_obj.common_run_sql("select short_name from query where flag!='1' limit 5")
+        # print(w_list)
+
+        for line in w_list:
+            company_short_name = line[0]
+            self.hack_geetest(company_short_name)
+
+
+        # self.quit_webdriver()
 
     def hack_geetest(self, company):
 
         flag = True
-        self.input_params(company)
         while flag:
+            self.input_params(company)
             img_url1, img_url2 = self.drag_pic()
             tracks = crack_picture(img_url1, img_url2).pictures_recover()
             tsb = self.emulate_track(tracks)
@@ -215,8 +254,41 @@ class gsxt(object):
             if '通过' in tsb.decode():
                 time.sleep(0.3)
                 soup = BeautifulSoup(self.br.page_source, 'html.parser')
-                for sp in soup.find_all("a", attrs={"class": "search_list_item db"}):
-                    print(company, 'http://www.gsxt.gov.cn' + sp['href'])
+
+
+                all_a_data = soup.find_all("a", attrs={"class": "search_list_item db"})
+
+                ###太频繁,就退出
+                if all_a_data == []:
+                    print("操作太频繁")
+                    exit()
+
+                for sp in all_a_data:
+                    # print(company, 'http://www.gsxt.gov.cn' + sp['href'])
+                    company_name = sp.h1.text
+                    company_name = str(company_name).strip()
+                    url_string = 'http://www.gsxt.gov.cn' + sp['href']
+
+                    ##查完收工
+                    import datetime
+                    now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                    sql = "select fullname from result where fullname = '%s'" % (company_name)
+                    res = run_sql_obj.common_run_sql(sql)
+
+                    # print(len(res), sql, res, company_name)
+                    if len(res) == 0:
+                        # 写入表
+                        now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                        sql = "insert into result(name,fullname,url,updatetime,flag) value('%s','%s','%s','%s','0')" % (
+                        company, company_name, url_string, now_time)
+                        run_sql_obj.common_run_sql(sql)
+                    else:
+                        now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                        sql = "update result set url = '%s', updatetime='%s' where fullname = '%s' and flag = '0'" % (url_string,company_name, now_time)
+                        # print(sql)
+                        res = run_sql_obj.common_run_sql(sql)
+
+
                 break
 
             elif '吃' in tsb.decode():
@@ -239,5 +311,7 @@ class gsxt(object):
 
 
 if __name__ == "__main__":
-    r_url_list = gsxt("chrome").run()
+    run_sql_obj = mysql()
+    run_obj = gsxt()
+    run_obj.run()
 

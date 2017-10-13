@@ -19,20 +19,23 @@ from bs4 import BeautifulSoup
 import sys
 import MySQLdb
 
+
 class mysql(object):
     """
     mysql 操作
 
     """
+
     def __init__(self):
         pass
+
     def common_run_sql(self, sql):
         config_info_json = {
-        'host': "172.18.126.51",
-        'port': 3306,
-        'db': 'geetest',
-        'user': 'root',
-        'password': 'Abcd1234'}
+            'host': "172.18.126.51",
+            'port': 3306,
+            'db': 'geetest_02',
+            'user': 'root',
+            'password': 'Abcd1234'}
         self.conn = MySQLdb.connect(**config_info_json, charset='utf8')
         self.cursor = self.conn.cursor()
 
@@ -46,10 +49,10 @@ class mysql(object):
         finally:
             self.conn.commit()
 
-
     def __del__(self):
         self.cursor.close()
         self.conn.close()
+
 
 class crack_picture(object):
     def __init__(self, img_url1, img_url2):
@@ -100,8 +103,8 @@ class crack_picture(object):
         t = 1.0 / distance
         list = [[0, 0.5, t]]
         # print(distance)
-        for x in range(0, distance-1, 2):
-            list.append([2, random.random()*5, t])
+        for x in range(0, distance - 1, 2):
+            list.append([2, random.random() * 5, t])
         return distance
         # crucial trace code was deleted
 
@@ -132,7 +135,6 @@ class gsxt(object):
         self.br.set_page_load_timeout(10)
         self.br.set_script_timeout(10)
 
-
     def input_params(self, name):
         self.br.get("http://www.gsxt.gov.cn/index")
         # print (self.br.page_source)
@@ -157,122 +159,141 @@ class gsxt(object):
             return re.findall('url\((.*?)\)', element.get_attribute('style'))[0].replace("webp", "jpg")
 
     def emulate_track(self, tracks):
-            element = self.br.find_element_by_class_name("gt_slider_knob")
+        element = self.br.find_element_by_class_name("gt_slider_knob")
 
-            action = ActionChains(self.br)
-            action.click_and_hold(on_element=element).perform()
-            # print(tracks)
+        action = ActionChains(self.br)
+        action.click_and_hold(on_element=element).perform()
+        # print(tracks)
 
-            total=1200
-            if tracks<50:
-               total=random.randint(600, 1600)
-            elif tracks>=50 and tracks<100:
-               total=random.randint(800, 1200)
-            elif tracks>=100 and tracks<150:
-               total=random.randint(1000, 1500)
-            elif tracks>=150 and tracks<200:
-               total=random.randint(1200, 1700)
+        total = 1200
+        if tracks < 50:
+            total = random.randint(600, 1600)
+        elif tracks >= 50 and tracks < 100:
+            total = random.randint(800, 1200)
+        elif tracks >= 100 and tracks < 150:
+            total = random.randint(1000, 1500)
+        elif tracks >= 150 and tracks < 200:
+            total = random.randint(1200, 1700)
+        else:
+            total = random.randint(1500, 2000)
+
+        xroffset = -random.randint(0, 1)
+
+        action.move_by_offset(xroffset, 0)
+
+        deltat1 = random.randint(20, 60) / 1000
+
+        # print(deltat1)
+        time.sleep(deltat1)
+
+        action.move_by_offset(-xroffset, 0)
+
+        deltat3 = random.randint(100, 200) / 1000
+        # print(deltat3)
+
+        deltat2 = total - 1000 * (deltat1 + deltat3)
+        # print("deltat2=%d"%deltat2)
+
+        v0 = tracks * 2 / deltat2
+        a = -v0 / deltat2
+
+        deltat = random.randint(20, 50)
+        prevSumt = 0
+        totalDist = 0
+        bFind = False
+
+        # print("\n\n")
+        ppp = 0
+        while deltat2 - deltat >= 0:
+            deltas = v0 * deltat + a * prevSumt * deltat + 0.5 * a * deltat * deltat
+            action.move_by_offset(deltas, 0)
+            totalDist += deltas
+            # print(totalDist)
+            # ppp += deltat
+            # print(deltat)
+            # print('ppp', ppp)
+            # if tracks-totalD
+            #     ist>10:
+            #    time.sleep(deltat/10000)
+            #            if random.randint(0, 1)==0 :
+            #                xroffset=-random.randint(5, 10)
+            #                action.move_by_offset(xroffset, 0)
+            #                time.sleep(-xroffset/100)
+            #                action.move_by_offset(-xroffset, 0)
+            #            if tracks-totalDist<1 and random.randint(0, 1)==0:
+            #                xoffset=int(tracks-totalDist)
+            #                action.move_by_offset(xoffset+6, 0)
+            #                time.sleep((xoffset+2)/100)
+            #                #action.move_by_offset(-xoffset-1, 0)
+
+
+            if tracks - totalDist < 2:
+                xoffset = int(tracks - totalDist + 0.5)
+                action.move_by_offset(xoffset + 4, 0)
+                time.sleep((xoffset + 4) / 100)
+                action.move_by_offset(5, 0)
+                break
+            prevSumt += deltat
+            deltat2 -= deltat
+            if deltat2 <= 45:
+                if bFind == True:
+                    break
+                deltat = deltat2
+                bFind = True
             else:
-               total=random.randint(1500, 2000)
-
-            xroffset=-random.randint(0, 1)
-
-            action.move_by_offset(xroffset, 0)
-
-            deltat1=random.randint(20, 60)/1000
-
-            # print(deltat1)
-            time.sleep(deltat1)
-
-            action.move_by_offset(-xroffset, 0)
-
-            deltat3=random.randint(100, 200)/1000
-            # print(deltat3)
-
-            deltat2=total-1000*(deltat1+deltat3)
-            # print("deltat2=%d"%deltat2)
-
-            v0=tracks*2/deltat2
-            a=-v0/deltat2
-
-            deltat=random.randint(20,50)
-            prevSumt=0
-            totalDist=0
-            bFind=False
-
-            # print("\n\n")
-            ppp = 0
-            while deltat2-deltat>=0:
-                deltas=v0*deltat+a*prevSumt*deltat+0.5*a*deltat*deltat
-                action.move_by_offset(deltas, 0)
-                totalDist+=deltas
-                # print(totalDist)
-                # ppp += deltat
-                # print(deltat)
-                # print('ppp', ppp)
-                # if tracks-totalD
-                #     ist>10:
-                #    time.sleep(deltat/10000)
-    #            if random.randint(0, 1)==0 :
-    #                xroffset=-random.randint(5, 10)
-    #                action.move_by_offset(xroffset, 0)
-    #                time.sleep(-xroffset/100)
-    #                action.move_by_offset(-xroffset, 0)
-    #            if tracks-totalDist<1 and random.randint(0, 1)==0:
-    #                xoffset=int(tracks-totalDist)
-    #                action.move_by_offset(xoffset+6, 0)
-    #                time.sleep((xoffset+2)/100)
-    #                #action.move_by_offset(-xoffset-1, 0)
-
-
-                if tracks-totalDist<2:
-                   xoffset=int(tracks-totalDist+0.5)
-                   action.move_by_offset(xoffset+4, 0)
-                   time.sleep((xoffset+4)/100)
-                   action.move_by_offset(5, 0)
-                   break
-                prevSumt+=deltat
-                deltat2-=deltat
-                if deltat2<=45:
-                   if bFind==True:
-                      break
-                   deltat=deltat2
-                   bFind=True
-                else:
-                   deltat=random.randint(25, 45)
-            time.sleep(deltat3)
-            #action.move_by_offset(tracks-totalDist, 0)
-            action.move_by_offset(2, 0)
-            action.release(on_element=element).perform()
-            time.sleep(0.8)
-            element = self.wait_for(By.CLASS_NAME, "gt_info_text")
-            ans = element.text.encode("utf-8")
-            # print(ans)
-            # print("\n\n")
-            return ans
+                deltat = random.randint(25, 45)
+        time.sleep(deltat3)
+        # action.move_by_offset(tracks-totalDist, 0)
+        action.move_by_offset(2, 0)
+        action.release(on_element=element).perform()
+        time.sleep(0.8)
+        element = self.wait_for(By.CLASS_NAME, "gt_info_text")
+        ans = element.text.encode("utf-8")
+        # print(ans)
+        # print("\n\n")
+        return ans
 
     def run(self):
 
         ###保持浏览器开启
         while True:
             ##数据库读出, 或者socket接收
-            w_list = run_sql_obj.common_run_sql("select name from geetest.query where flag=1")
+            w_list = run_sql_obj.common_run_sql("select short_name from geetest_02.query where flag=0")
             if len(w_list) == 0:
                 print('没有待爬取的项目')
                 time.sleep(10)
                 continue
 
-
+            ##查所有
             for company in w_list:
                 company = company[0]
-                self.hack_geetest(company)
 
-                ##查完flag改为0
-                sql = "update geetest.query set flag=0 where name='%s'" % (company)
-                run_sql_obj.common_run_sql(sql)
+                while True:
+                    ##查到flag是1 重查
+                    sql = "select flag from result where name='%s' and flag = '0'" % (company)
+                    flag = run_sql_obj.common_run_sql(sql)
+
+                    ###如果还没查
+                    sql = "select flag from result where name='%s'" % (company)
+                    num_company = run_sql_obj.common_run_sql(sql)
+
+                    ##所有都查完了
+                    if len(flag) == 0 and len(num_company) >= 1:
+                        #查完收工
+                        sql = "update geetest_02.query set flag=1 where short_name='%s'" % (company)
+                        run_sql_obj.common_run_sql(sql)
+                        break
+                    else:
+                        null_flag = self.hack_geetest(company)
+                        # print(null_flag)
+                        if null_flag == []:
+                            break
+                    # tmp_s = random.randint(5, 10)
+                    time.sleep(180)
+
+
 
             time.sleep(10)
-
 
     def hack_geetest(self, company):
         flag = True
@@ -282,16 +303,22 @@ class gsxt(object):
             tracks = crack_picture(img_url1, img_url2).pictures_recover()
             tsb = self.emulate_track(tracks)
 
-
             if '通过' in tsb.decode():
                 time.sleep(0.3)
 
-                #之前的旧记录去掉
-                sql = "delete from result where name='%s'" % (company)
-                res = run_sql_obj.common_run_sql(sql)
-
                 soup = BeautifulSoup(self.br.page_source, 'html.parser')
-                for sp in soup.find_all("a", attrs={"class": "search_list_item db"}):
+
+                all_a_lable = soup.find_all("a", attrs={"class": "search_list_item db"})
+
+                if len(all_a_lable) == 0:
+                    print(company, ' 这个名字啥也没有工商信息')
+                    sql = "update geetest_02.query set flag=1 where short_name='%s'" % (company)
+                    run_sql_obj.common_run_sql(sql)
+                    return all_a_lable
+
+
+
+                for index, sp in enumerate(all_a_lable):
                     company_name = sp.h1.text
                     company_name = str(company_name).strip()
                     url_string = 'http://www.gsxt.gov.cn' + sp['href']
@@ -300,11 +327,23 @@ class gsxt(object):
                     import datetime
                     now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
-                    # 写入表
-                    sql = "insert into result(name,fullname,url,updatetime) value('%s','%s','%s','%s')" % (company, company_name, url_string, now_time)
-                    run_sql_obj.common_run_sql(sql)
+                    sql = "select fullname from result where fullname = '%s'" % (company_name)
+                    res = run_sql_obj.common_run_sql(sql)
 
+                    # print(len(res), sql, res, company_name)
+                    if len(res) == 0:
+                        # 写入表
+                        now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                        sql = "insert into result(name,fullname,url,updatetime,flag, machine_code) value('%s','%s','%s','%s','0','%s')" % (
+                        company, company_name, url_string, now_time, index
+                        )
 
+                        run_sql_obj.common_run_sql(sql)
+                    else:
+                        now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                        sql = "update result set url = '%s', updatetime='%s' where fullname = '%s' and flag = '0'" % (url_string,company_name, now_time)
+                        # print(sql)
+                        res = run_sql_obj.common_run_sql(sql)
 
                 break
             elif '吃' in tsb.decode():
@@ -329,5 +368,12 @@ class gsxt(object):
 
 if __name__ == "__main__":
     run_sql_obj = mysql()
-    r_url_list = gsxt("chrome").run()
+    while True:
+        try:
+            a_obj = gsxt("chrome")
+            a_obj.run()
+        except Exception as e:
+            print(str(e))
+            a_obj.quit_webdriver()
+            continue
 
