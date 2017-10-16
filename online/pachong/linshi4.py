@@ -341,8 +341,8 @@ class gsxt(object):
                         run_sql_obj.common_run_sql(sql)
                     else:
                         now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-                        sql = "update result set url = '%s', updatetime='%s' where fullname = '%s' and flag = '0'" % (url_string,company_name, now_time)
-                        # print(sql)
+                        sql = "update result set url = '%s', updatetime='%s' where fullname = '%s' and flag = '0'" % (url_string, now_time, company_name)
+                        print(sql)
                         res = run_sql_obj.common_run_sql(sql)
 
                 break

@@ -31,11 +31,11 @@ class mysql(object):
 
     def common_run_sql(self, sql):
         config_info_json = {
-            'host': "60.194.156.184",
-            'port': 3123,
+            'host': "172.18.126.51",
+            'port': 3306,
             'db': 'geetest_02',
-            'user': 'test101',
-            'password': 'test101'}
+            'user': 'root',
+            'password': 'Abcd1234'}
         self.conn = MySQLdb.connect(**config_info_json, charset='utf8')
         self.cursor = self.conn.cursor()
 
@@ -269,7 +269,7 @@ class gsxt(object):
 
             ##查所有
             for company in w_list:
-
+                time.sleep(3)
                 company = company[0]
                 print(company)
                 while True:
