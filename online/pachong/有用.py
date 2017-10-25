@@ -261,7 +261,7 @@ class gsxt(object):
             tmp_s = random.randint(1, 8)
             time.sleep(tmp_s)
             ##数据库读出, 或者socket接收
-            w_list = run_sql_obj.common_run_sql("select short_name from query where flag=0 limit 10")
+            w_list = run_sql_obj.common_run_sql("select short_name from query where flag=0 and id BETWEEN  901 and 902;")
             if len(w_list) == 0:
                 print('没有待爬取的项目')
                 time.sleep(10)
@@ -296,12 +296,13 @@ class gsxt(object):
 
     def hack_geetest(self, company):
         flag = True
+        self.input_params(company)
         while flag:
-            self.input_params(company)
             img_url1, img_url2 = self.drag_pic()
             tracks = crack_picture(img_url1, img_url2).pictures_recover()
             tsb = self.emulate_track(tracks)
 
+            time.sleep(3)
             if '通过' in tsb.decode():
                 time.sleep(0.3)
 
@@ -310,7 +311,7 @@ class gsxt(object):
                 if len(all_a_lable) == 0:
                     print(company, ' 没有工商信息,可能被封了')
                     time.sleep(2)
-                    continue
+                    break
 
                 for sp in all_a_lable:
                     company_name = sp.h1.text
@@ -324,7 +325,7 @@ class gsxt(object):
                     sql = "select fullname from result where fullname = '%s'" % (company_name)
                     res = run_sql_obj.common_run_sql(sql)
 
-                    # print(len(res), sql, res, company_name)
+                    print(res)
                     if len(res) == 0:
                         # 写入表
                         now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")

@@ -1,11 +1,3 @@
-import time
-import threading
-import queue
-
-
-
-
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -136,13 +128,12 @@ class crack_picture(object):
 
 
 class gsxt(object):
-    def __init__(self, br_name="chrome"):
-        pass
-        # self.br = self.get_webdriver(br_name)
-        # self.br.set_window_size(width=800, height=600)
-        # self.wait = WebDriverWait(self.br, 20, 1.0)
-        # self.br.set_page_load_timeout(10)
-        # self.br.set_script_timeout(10)
+    def __init__(self, br_name="phantomjs"):
+        self.br = self.get_webdriver(br_name)
+        self.br.set_window_size(width=800, height=600)
+        self.wait = WebDriverWait(self.br, 20, 1.0)
+        self.br.set_page_load_timeout(100)
+        self.br.set_script_timeout(100)
 
     def input_params(self, name):
         self.br.get("http://www.gsxt.gov.cn/index")
@@ -260,35 +251,49 @@ class gsxt(object):
         ans = element.text.encode("utf-8")
         # print(ans)
         # print("\n\n")
+        time.sleep(3)
         return ans
 
     def run(self):
 
-        ###保持线程死循环,一直在任务,或者等待任务
+        ###保持浏览器开启
         while True:
 
-            if q1.empty():
-                print('队列是空的 我是线程%s' % (threading.current_thread().name))
-                time.sleep(2)
+            tmp_s = random.randint(1, 8)
+            time.sleep(tmp_s)
+            ##数据库读出, 或者socket接收
+            w_list = run_sql_obj.common_run_sql("select short_name from query where flag=0 and id BETWEEN  1951 and 2000;")
+            if len(w_list) == 0:
+                print('没有待爬取的项目')
+                time.sleep(10)
                 continue
 
-            company_simple_name = q1.get()
-            print(company_simple_name)
+            ##查所有
+            for company in w_list:
+                time.sleep(3)
+                company = company[0]
+                print(company)
+                while True:
 
-            #判断这个公司是否已经查好了,还没写
-            done_flag = False
-            done_flag = run_sql_obj.common_run_sql(
-                "select name,flag from result where name='%s' and (flag='1' or flag ='0')" % (company_simple_name)
-            )
+                    sql = "select flag from result where name='%s'" % (company)
+                    num_company = run_sql_obj.common_run_sql(sql)
 
-            print(done_flag)
+                    sql = "select flag from result where name='%s' and (flag = '0' or flag ='1')" % (company)
+                    flag = run_sql_obj.common_run_sql(sql)
 
-            if done_flag:
-                continue
+                    if len(flag) == 0 and len(num_company) >= 1:
+                        print(company, '已经爬完程序,修改为已完成')
+                        sql = "update query set flag=1 where short_name='%s'" % (company)
+                        run_sql_obj.common_run_sql(sql)
+                        break
 
-            ##开查
-            # self.hack_geetest(company_simple_name)
+                    else:
+                        self.hack_geetest(company)
+                    break
 
+
+
+            time.sleep(10)
 
     def hack_geetest(self, company):
         flag = True
@@ -298,21 +303,18 @@ class gsxt(object):
             tracks = crack_picture(img_url1, img_url2).pictures_recover()
             tsb = self.emulate_track(tracks)
 
+            time.sleep(3)
             if '通过' in tsb.decode():
                 time.sleep(0.3)
+
                 soup = BeautifulSoup(self.br.page_source, 'html.parser')
-
-
                 all_a_lable = soup.find_all("a", attrs={"class": "search_list_item db"})
                 if len(all_a_lable) == 0:
-                    print(company, ' 这个名字啥也没有工商信息')
-                    sql = "update geetest_02.query set flag=1 where short_name='%s'" % (company)
-                    run_sql_obj.common_run_sql(sql)
-                    return all_a_lable
+                    print(company, ' 没有工商信息,可能被封了')
+                    time.sleep(2)
+                    break
 
-
-
-                for index, sp in enumerate(all_a_lable):
+                for sp in all_a_lable:
                     company_name = sp.h1.text
                     company_name = str(company_name).strip()
                     url_string = 'http://www.gsxt.gov.cn' + sp['href']
@@ -324,21 +326,19 @@ class gsxt(object):
                     sql = "select fullname from result where fullname = '%s'" % (company_name)
                     res = run_sql_obj.common_run_sql(sql)
 
-                    # print(len(res), sql, res, company_name)
+                    # print(res)
                     if len(res) == 0:
                         # 写入表
                         now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-                        sql = "insert into result(name,fullname,url,updatetime,flag, machine_code) value('%s','%s','%s','%s','0','%s')" % (
-                        company, company_name, url_string, now_time, index
-                        )
-
+                        sql = "insert into result(name,fullname,url,updatetime,flag) value('%s','%s','%s','%s','0')" % (
+                        company, company_name, url_string, now_time)
+                        print(sql)
                         run_sql_obj.common_run_sql(sql)
                     else:
                         now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-                        sql = "update result set url = '%s', updatetime='%s' where fullname = '%s' and flag = '0'" % (url_string,company_name, now_time)
-                        # print(sql)
+                        sql ="update result set url = '%s', updatetime='%s' where fullname = '%s' " % (url_string, now_time, company_name)
+                        print(sql)
                         res = run_sql_obj.common_run_sql(sql)
-
                 break
             elif '吃' in tsb.decode():
                 time.sleep(0.2)
@@ -354,29 +354,21 @@ class gsxt(object):
             dcap["phantomjs.page.settings.userAgent"] = (
                 "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3080.5 Safari/537.36")
             # return webdriver.PhantomJS(desired_capabilities=dcap)
+
             return webdriver.PhantomJS(executable_path=r"E:\tools\phantomjs-2.1.1-windows\bin\phantomjs.exe")
 
         elif name.lower() == "chrome":
             return webdriver.Chrome(r"E:\tools\chromedriver.exe")
 
 
-def main():
-    global run_sql_obj
+if __name__ == "__main__":
     run_sql_obj = mysql()
     while True:
         try:
-            a_obj = gsxt()
+            a_obj = gsxt("chrome")
             a_obj.run()
         except Exception as e:
             print(str(e))
             a_obj.quit_webdriver()
             continue
-
-if __name__ == '__main__':
-    q1 = queue.Queue()
-    q1.put("海易出行")
-    q1.put("新浪")
-    q1.put("百度")
-    q1.put("华为")
-    main()
 

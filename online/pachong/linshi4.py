@@ -257,8 +257,11 @@ class gsxt(object):
 
         ###保持浏览器开启
         while True:
+
+            tmp_s = random.randint(1, 8)
+            time.sleep(tmp_s)
             ##数据库读出, 或者socket接收
-            w_list = run_sql_obj.common_run_sql("select short_name from geetest_02.query where flag=0")
+            w_list = run_sql_obj.common_run_sql("select short_name from query where flag=0 and id BETWEEN  1000 and 1000;")
             if len(w_list) == 0:
                 print('没有待爬取的项目')
                 time.sleep(10)
@@ -266,30 +269,26 @@ class gsxt(object):
 
             ##查所有
             for company in w_list:
+                time.sleep(3)
                 company = company[0]
-
+                print(company)
                 while True:
-                    ##查到flag是1 重查
-                    sql = "select flag from result where name='%s' and flag = '0'" % (company)
-                    flag = run_sql_obj.common_run_sql(sql)
 
-                    ###如果还没查
                     sql = "select flag from result where name='%s'" % (company)
                     num_company = run_sql_obj.common_run_sql(sql)
 
-                    ##所有都查完了
+                    sql = "select flag from result where name='%s' and (flag = '0' or flag ='1')" % (company)
+                    flag = run_sql_obj.common_run_sql(sql)
+
                     if len(flag) == 0 and len(num_company) >= 1:
-                        #查完收工
-                        sql = "update geetest_02.query set flag=1 where short_name='%s'" % (company)
+                        print(company, '已经爬完程序,修改为已完成')
+                        sql = "update query set flag=1 where short_name='%s'" % (company)
                         run_sql_obj.common_run_sql(sql)
                         break
+
                     else:
-                        null_flag = self.hack_geetest(company)
-                        # print(null_flag)
-                        if null_flag == []:
-                            break
-                    # tmp_s = random.randint(5, 10)
-                    time.sleep(180)
+                        self.hack_geetest(company)
+                    break
 
 
 
@@ -303,22 +302,18 @@ class gsxt(object):
             tracks = crack_picture(img_url1, img_url2).pictures_recover()
             tsb = self.emulate_track(tracks)
 
+            time.sleep(3)
             if '通过' in tsb.decode():
                 time.sleep(0.3)
 
                 soup = BeautifulSoup(self.br.page_source, 'html.parser')
-
                 all_a_lable = soup.find_all("a", attrs={"class": "search_list_item db"})
-
                 if len(all_a_lable) == 0:
-                    print(company, ' 这个名字啥也没有工商信息')
-                    sql = "update geetest_02.query set flag=1 where short_name='%s'" % (company)
-                    run_sql_obj.common_run_sql(sql)
-                    return all_a_lable
+                    print(company, ' 没有工商信息,可能被封了')
+                    time.sleep(2)
+                    break
 
-
-
-                for index, sp in enumerate(all_a_lable):
+                for sp in all_a_lable:
                     company_name = sp.h1.text
                     company_name = str(company_name).strip()
                     url_string = 'http://www.gsxt.gov.cn' + sp['href']
@@ -330,21 +325,18 @@ class gsxt(object):
                     sql = "select fullname from result where fullname = '%s'" % (company_name)
                     res = run_sql_obj.common_run_sql(sql)
 
-                    # print(len(res), sql, res, company_name)
+                    print(res)
                     if len(res) == 0:
                         # 写入表
                         now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-                        sql = "insert into result(name,fullname,url,updatetime,flag, machine_code) value('%s','%s','%s','%s','0','%s')" % (
-                        company, company_name, url_string, now_time, index
-                        )
-
+                        sql = "insert into result(name,fullname,url,updatetime,flag) value('%s','%s','%s','%s','0')" % (
+                        company, company_name, url_string, now_time)
                         run_sql_obj.common_run_sql(sql)
                     else:
                         now_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-                        sql = "update result set url = '%s', updatetime='%s' where fullname = '%s' and flag = '0'" % (url_string, now_time, company_name)
+                        sql ="update result set url = '%s', updatetime='%s' where fullname = '%s' " % (url_string, now_time, company_name)
                         print(sql)
                         res = run_sql_obj.common_run_sql(sql)
-
                 break
             elif '吃' in tsb.decode():
                 time.sleep(0.2)

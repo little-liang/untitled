@@ -343,6 +343,7 @@ class gsxt(object):
         self.br.quit()
 
     def get_webdriver(self, name):
+
         if name.lower() == "phantomjs":
             dcap = dict(DesiredCapabilities.PHANTOMJS)
             dcap["phantomjs.page.settings.userAgent"] = (
@@ -358,7 +359,7 @@ if __name__ == "__main__":
     run_sql_obj = mysql()
     while True:
         try:
-            a_obj = gsxt("chrome")
+            a_obj = gsxt("phantomjs")
             a_obj.run()
         except Exception as e:
             print(str(e))
